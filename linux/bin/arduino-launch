@@ -1,5 +1,8 @@
 #!/bin/sh -x
-	
+
+BIN_ABSPATH=$(cd "$(dirname "$0")"; pwd)
+MESSAGES_ABSPATH=$BIN_ABSPATH/../messages
+
 # Retrieve handle and command
 HANDLE=$1
 COMMAND=$2
@@ -18,8 +21,8 @@ EXIT_CODE=$?
 MESSAGE_FILE=`date +%s`
 MESSAGE_FILE="$MESSAGE_FILE-$COMMAND-$HANDLE"
 
-mv $TMP_OUT $MESSAGE_FILE.out
-mv $TMP_ERR $MESSAGE_FILE.err
+mv $TMP_OUT $MESSAGES_ABSPATH/$MESSAGE_FILE.out
+mv $TMP_ERR $MESSAGES_ABSPATH/$MESSAGE_FILE.err
 
 rm -f $TMP_OUT $TMP_ERR
 
