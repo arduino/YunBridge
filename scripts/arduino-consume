@@ -1,0 +1,16 @@
+#!/bin/sh
+
+BASEDIR=/arduino/processes
+	
+# Retrieve handle and command
+HANDLE=$1
+shift
+
+if [ "$HANDLE" -eq "" ] ; then
+	echo no
+	exit 1
+fi
+
+BASEDIR=$BASEDIR/$HANDLE
+rm -rf $BASEDIR
+

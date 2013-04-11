@@ -1,0 +1,31 @@
+#!/bin/sh
+
+BASEDIR=/arduino/processes
+	
+# Retrieve handle and command
+HANDLE=$1
+shift
+
+BASEDIR=$BASEDIR/$HANDLE
+mkdir $BASEDIR
+
+OUT_FILE=$BASEDIR/stdout
+ERR_FILE=$BASEDIR/stderr
+IN_FILE=$BASEDIR/stdin
+PID_FILE=$BASEDIR/running
+RES_FILE=$BASEDIR/result
+
+$* > $OUT_FILE 2> $ERR_FILE &
+PID=$!
+
+# Save the process number
+echo $PID > $PID_FILE
+
+# Wait for process termination
+wait $PID
+
+# Save the result
+echo $? > $RES_FILE
+rm -f $PID_FILE
+
+
