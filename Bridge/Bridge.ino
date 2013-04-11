@@ -2,20 +2,18 @@
 
 
 
-class BridgeClass {
+class BridgeClass : 
+public Stream {
 public:
   BridgeClass(Stream &_wrt) : 
-  wrt(_wrt), nextHandle(0) {  
+  wrt(_wrt) {  
   }
 
   void begin();
 
-  void beginWrite(String cmd);
-  void writeInt(int);
-  void writeString(String);
-  unsigned int endWrite();
+  void beginCommand();
+  unsigned int endCommand();
 
-  int available();
   int available(unsigned int handle);
 
   String beginRead();
@@ -24,14 +22,36 @@ public:
   //String readStringParam(int len, boolean next=true);
   void endRead();
 
+  void printEscaped(String string);
+
+  // Print methods
+  size_t write(uint8_t c) { 
+    return wrt.write(c); 
+  }
+  size_t write(const uint8_t *buffer, size_t size) { 
+    return wrt.write(buffer, size); 
+  }
+
+  // Stream methods
+  int available() { 
+    return wrt.available(); 
+  }
+  int read() { 
+    return wrt.read(); 
+  }
+  int peek() { 
+    return wrt.peek(); 
+  }
+  void flush() { 
+    wrt.flush(); 
+  }
+
 private:
-  void flush();
   boolean wait();
+  void dropAll();
 
 private:
   static const char CTRL_C = 3;
-
-  unsigned int nextHandle;
   Stream &wrt;
 };
 
@@ -50,11 +70,6 @@ void BridgeClass::begin() {
   wait();
 }
 
-void BridgeClass::flush() {
-  while (wrt.available())
-    wrt.read();
-}
-
 boolean BridgeClass::wait() {
   int start = millis();
   while (wrt.read()!='#')
@@ -63,36 +78,31 @@ boolean BridgeClass::wait() {
   return true;
 }
 
-int BridgeClass::available() {
-}
-
 int BridgeClass::available(unsigned int handle) {
 }
 
-void BridgeClass::beginWrite(String cmd) {
-  wrt.print(F("arduino-launch "));
-  wrt.print(nextHandle);
-  wrt.print(F(" "));
-  wrt.print(cmd);
+void BridgeClass::beginCommand() {
+  print(F("arduino-launch "));
 }
 
-void BridgeClass::writeInt(int value) {
-  wrt.print(F(" "));
-  wrt.print(value);
-}
-
-void BridgeClass::writeString(String string) {
+void BridgeClass::printEscaped(String string) {
   // TODO: handle " ' ! $ & > and other special chars in string
-  wrt.print(F(" \""));
-  wrt.print(string);
-  wrt.print(F("\""));
+  print(F(" \""));
+  print(string);
+  print(F("\""));
 }
 
-unsigned int BridgeClass::endWrite() {
+unsigned int BridgeClass::endCommand() {
   wrt.println(F(" &"));
   wait();
-  return nextHandle++;
+  return ;
 }
+
+void BridgeClass::dropAll() {
+  while (available()>0)
+    read();
+}
+
 
 class BridgeCurl {
 public:
@@ -108,9 +118,9 @@ public:
   }
 
   void asyncGet(String url) {
-    bridge.beginWrite("CURL");
-    bridge.writeString(url);
-    handle = bridge.endWrite();
+    bridge.beginCommand();
+    bridge.printEscaped(url);
+    handle = bridge.endCommand();
   }
 
   int available() {
@@ -140,6 +150,10 @@ void setup() {
 void loop() {
   //Curl.get("http://bug.st/");
 }
+
+
+
+
 
 
 
