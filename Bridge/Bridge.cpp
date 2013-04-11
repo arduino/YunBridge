@@ -7,13 +7,6 @@
 
 #include "Bridge.h"
 
-void BridgeClass::begin() {
-	print(CTRL_C);
-	print(F("\n"));
-	delay(500);
-	flush();
-}
-
 boolean BridgeClass::wait() {
 	int start = millis();
 	while (read() != PROMPT) {

@@ -15,9 +15,11 @@ class BridgeClass: public Stream {
 public:
 	BridgeClass(Stream &_stream) :
 			currentHandle(0), stream(_stream) {
+		print(CTRL_C);
+		print(F("\n"));
+		delay(500);
+		flush();
 	}
-
-	void begin();
 
 	unsigned int beginCommand(String command);
 	unsigned int endCommand();
