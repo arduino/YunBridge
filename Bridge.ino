@@ -1,9 +1,4 @@
-
-
-
-
-class BridgeClass : 
-public Stream {
+class BridgeClass : public Stream {
 public:
   BridgeClass(Stream &_wrt) : 
   wrt(_wrt) {  
@@ -47,38 +42,36 @@ public:
   }
 
 private:
+  static const char CTRL_C = 3;
+  static const char PROMPT = '#';
+  Stream &wrt;
+
   boolean wait();
   void dropAll();
-
-private:
-  static const char CTRL_C = 3;
-  Stream &wrt;
 };
 
-
 void BridgeClass::begin() {
-  wrt.print(CTRL_C);
-  wrt.print(F("\n"));
+  print(CTRL_C);
+  print(F("\n"));
   delay(500);
   flush();
 
-  wrt.print(F("cd /\n"));
+  print(F("cd /\n"));
   wait();
-  wrt.print(F("arduino-begin\n"));
+  print(F("arduino-begin\n"));
   wait();
-  wrt.print(F("cd /arduino\n"));
+  print(F("cd /arduino\n"));
   wait();
 }
 
 boolean BridgeClass::wait() {
   int start = millis();
-  while (wrt.read()!='#')
-    if ((millis() - start) > 5000)
+  while (wrt.read() ! = PROMPT) {
+    if ((millis() - start) > 5000) {
       return false;
+    }
+  }
   return true;
-}
-
-int BridgeClass::available(unsigned int handle) {
 }
 
 void BridgeClass::beginCommand() {
@@ -93,14 +86,15 @@ void BridgeClass::printEscaped(String string) {
 }
 
 unsigned int BridgeClass::endCommand() {
-  wrt.println(F(" &"));
+  println(F(" &"));
   wait();
-  return ;
+  return;
 }
 
 void BridgeClass::dropAll() {
-  while (available()>0)
+  while ( available() > 0) {
     read();
+  }
 }
 
 
