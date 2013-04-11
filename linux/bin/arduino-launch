@@ -12,6 +12,7 @@ shift
 
 # Making folder for this process outputs and 
 BASEDIR=$PROCESSES_ABSPATH/$HANDLE
+rm -rf $BASEDIR
 mkdir $BASEDIR
 
 OUT_FILE=$BASEDIR/stdout
