@@ -20,7 +20,7 @@
 
 // Remove warnings
 #define printF(x) \
-	{ const __FlashStringHelper*___str = F(x); \
+	{ prog_char ___str[] PROGMEM = x; \
 	print(___str); }
 	
 void BridgeClass::begin() {
@@ -54,23 +54,23 @@ boolean BridgeClass::wait() {
 }
 
 unsigned int BridgeClass::beginCommand(String command) {
-	print(F("arduino-launch "));
+	printF("arduino-launch ");
 	print(currentHandle);
-	print(F(" "));
+	printF(" ");
 	print(command);
-	print(F(" "));
+	printF(" ");
 	return currentHandle++;
 }
 
 void BridgeClass::printEscaped(String param) {
 	// TODO: handle " ' ! $ & > and other special chars in string
-	print(F(" \""));
+	printF(" \"");
 	print(param);
-	print(F("\""));
+	printF("\"");
 }
 
 unsigned int BridgeClass::endCommand() {
-	print(F(" &\n"));
+	printF(" &\n");
 	wait();
 	return currentHandle;
 }
@@ -82,7 +82,7 @@ void BridgeClass::dropAll() {
 }
 
 boolean BridgeClass::hasResponse(unsigned int handle) {
-	print(F("arduino-has-output "));
+	printF("arduino-has-output ");
 	print(handle);
 	String output = readStringUntil('\n');
 	wait();
@@ -91,13 +91,13 @@ boolean BridgeClass::hasResponse(unsigned int handle) {
 
 String BridgeClass::beginRead(unsigned int handle, unsigned int offset,
 		unsigned int size) {
-	print(F("arduino-read-output "));
+	printF("arduino-read-output ");
 	print(handle);
-	print(F(" "));
+	printF(" ");
 	print(offset);
-	print(F(" "));
+	printF(" ");
 	print(size);
-	print(F(" "));
+	printF(" ");
 	String output = readStringUntil('\n');
 	wait();
 	return output;
