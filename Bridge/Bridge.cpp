@@ -18,28 +18,23 @@
 
 #include "Bridge.h"
 
-// Remove warnings
-#define printF(x) \
-	{ prog_char ___str[] PROGMEM = x; \
-	print(___str); }
-	
 void BridgeClass::begin() {
 	print(CTRL_C);
-	printF("\n");
+	print(F("\n"));
 	delay(500);
 	// Wait for OpenWRT message
 	// "Press enter to activate console"
 	dropAll();
 	
-	printF("\n");
+	print(F("\n"));
 	delay(400);
 	dropAll();
 
-	printF("cd /\n");
+	print(F("cd /\n"));
 	wait();
-	printF("arduino-begin\n");
+	print(F("arduino-begin\n"));
 	wait();
-	printF("cd /arduino\n");
+	print(F("cd /arduino\n"));
 	wait();
 }
 
@@ -54,25 +49,24 @@ boolean BridgeClass::wait() {
 }
 
 unsigned int BridgeClass::beginCommand(String command) {
-	printF("arduino-launch ");
+	print(F("arduino-launch "));
 	print(currentHandle);
-	printF(" ");
+	print(F(" "));
 	print(command);
-	printF(" ");
+	print(F(" "));
 	return currentHandle++;
 }
 
 void BridgeClass::printEscaped(String param) {
 	// TODO: handle " ' ! $ & > and other special chars in string
-	printF(" \"");
+	print(F(" \""));
 	print(param);
-	printF("\"");
+	print(F("\""));
 }
 
-unsigned int BridgeClass::endCommand() {
-	printF(" &\n");
+void BridgeClass::endCommand() {
+	print(F(" &\n"));
 	wait();
-	return currentHandle;
 }
 
 void BridgeClass::dropAll() {
@@ -82,7 +76,7 @@ void BridgeClass::dropAll() {
 }
 
 boolean BridgeClass::hasResponse(unsigned int handle) {
-	printF("arduino-has-output ");
+	print(F("arduino-has-output "));
 	print(handle);
 	String output = readStringUntil('\n');
 	wait();
@@ -91,13 +85,13 @@ boolean BridgeClass::hasResponse(unsigned int handle) {
 
 String BridgeClass::beginRead(unsigned int handle, unsigned int offset,
 		unsigned int size) {
-	printF("arduino-read-output ");
+	print(F("arduino-read-output "));
 	print(handle);
-	printF(" ");
+	print(F(" "));
 	print(offset);
-	printF(" ");
+	print(F(" "));
 	print(size);
-	printF(" ");
+	print(F(" "));
 	String output = readStringUntil('\n');
 	wait();
 	return output;

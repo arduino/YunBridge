@@ -30,8 +30,8 @@ public:
 
 	void begin();
 	unsigned int beginCommand(String command);
-	unsigned int endCommand();
-	void printEscaped(String string);
+	void commandAddEscapedParam(String string);
+	void endCommand();
 
 	boolean hasResponse(unsigned int handle);
 

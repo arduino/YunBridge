@@ -27,7 +27,7 @@ String Curl::get(String url) {
 }
 
 void Curl::asyncGet(String url) {
-	bridge.beginCommand("curl");
-	bridge.printEscaped(url);
-	handle = bridge.endCommand();
+	handle = bridge.beginCommand("curl");
+	bridge.commandAddEscapedParam(url);
+	bridge.endCommand();
 }
