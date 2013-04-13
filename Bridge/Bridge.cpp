@@ -20,12 +20,12 @@
 
 boolean BridgeClass::wait() {
 	int start = millis();
-	while (read() != PROMPT) {
-		if ((millis() - start) > 5000) {
-			return false;
+	while ((millis() - start) < 5000) {
+		if (read() == PROMPT) {
+			return true;
 		}
 	}
-	return true;
+	return false;
 }
 
 unsigned int BridgeClass::beginCommand(String command) {
