@@ -25,13 +25,10 @@
 class BridgeClass: public Stream {
 public:
 	BridgeClass(Stream &_stream) :
-			currentHandle(0), stream(_stream) {
-		print(CTRL_C);
-		print(F("\n"));
-		delay(500);
-		flush();
+			stream(_stream), currentHandle(0) {
 	}
 
+	void begin();
 	unsigned int beginCommand(String command);
 	unsigned int endCommand();
 	void printEscaped(String string);

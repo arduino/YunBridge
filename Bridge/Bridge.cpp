@@ -18,6 +18,31 @@
 
 #include "Bridge.h"
 
+// Remove warnings
+#define printF(x) \
+	{ const __FlashStringHelper*___str = F(x); \
+	print(___str); }
+	
+void BridgeClass::begin() {
+	print(CTRL_C);
+	printF("\n");
+	delay(500);
+	// Wait for OpenWRT message
+	// "Press enter to activate console"
+	dropAll();
+	
+	printF("\n");
+	delay(400);
+	dropAll();
+
+	printF("cd /\n");
+	wait();
+	printF("arduino-begin\n");
+	wait();
+	printF("cd /arduino\n");
+	wait();
+}
+
 boolean BridgeClass::wait() {
 	int start = millis();
 	while ((millis() - start) < 5000) {
