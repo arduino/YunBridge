@@ -33,35 +33,26 @@ public:
 	void commandAddEscapedParam(String string);
 	void endCommand();
 
-	boolean hasResponse(unsigned int handle);
+	boolean commandIsRunning(unsigned int handle);
 
-	String beginRead(unsigned int handle, unsigned int offset,
-			unsigned int size);
-	//int readIntParam();
-	//String readStringParam(int len, boolean next=true);
-	void endRead();
+	unsigned int commandExitCode(unsigned int handle);
+	
+	void cleanCommand(unsigned int handle);
+	
+	unsigned long commandOutputSize(unsigned int handle);
+	void readCommandOutput(unsigned int handle, unsigned int offset, 
+		unsigned int size, char *buffer);
 
 	// Print methods
-	size_t write(uint8_t c) {
-		return stream.write(c);
-	}
-	size_t write(const uint8_t *buffer, size_t size) {
-		return stream.write(buffer, size);
-	}
+	size_t write(uint8_t c) { return stream.write(c); }
+	size_t write(const uint8_t *buffer, size_t size) 
+		{ return stream.write(buffer, size); }
 
 	// Stream methods
-	int available() {
-		return stream.available();
-	}
-	int read() {
-		return stream.read();
-	}
-	int peek() {
-		return stream.peek();
-	}
-	void flush() {
-		stream.flush();
-	}
+	int available() { return stream.available(); }
+	int read() { return stream.read(); }
+	int peek() { return stream.peek(); }
+	void flush() { stream.flush(); }
 
 private:
 	static const char CTRL_C = 3;

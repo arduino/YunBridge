@@ -38,16 +38,6 @@ void BridgeClass::begin() {
 	wait();
 }
 
-boolean BridgeClass::wait() {
-	int start = millis();
-	while ((millis() - start) < 5000) {
-		if (read() == PROMPT) {
-			return true;
-		}
-	}
-	return false;
-}
-
 unsigned int BridgeClass::beginCommand(String command) {
 	print(F("arduino-launch "));
 	print(currentHandle);
@@ -57,7 +47,7 @@ unsigned int BridgeClass::beginCommand(String command) {
 	return currentHandle++;
 }
 
-void BridgeClass::printEscaped(String param) {
+void BridgeClass::commandAddEscapedParam(String param) {
 	// TODO: handle " ' ! $ & > and other special chars in string
 	print(F(" \""));
 	print(param);
@@ -69,30 +59,69 @@ void BridgeClass::endCommand() {
 	wait();
 }
 
+boolean BridgeClass::commandIsRunning(unsigned int handle) {
+	print(F("find processes/"));
+	print(handle);
+	print(F(" -name running|wc -l\n"));
+	find("\n");
+	boolean running = (parseInt() == 1);
+	wait();
+	return running;
+}
+
+unsigned int BridgeClass::commandExitCode(unsigned int handle) {
+	print(F("cat processes/"));
+	print(handle);
+	print(F("/result\n"));
+	find("\n");
+	int result = parseInt();
+	wait();
+	return result;
+}
+
+void BridgeClass::cleanCommand(unsigned int handle) {
+	print(F("arduino-consume "));
+	print(handle);
+	print('\n');
+	wait();
+}
+
+unsigned long BridgeClass::commandOutputSize(unsigned int handle) {
+	print(F("arduino-read-size "));
+	print(handle);
+	print(F(" stdout\n"));
+	find("\n");
+	long res = parseInt();
+	wait();
+	return res;
+}
+
+void BridgeClass::readCommandOutput(unsigned int handle, unsigned int offset, 
+		unsigned int size, char *buffer) {
+	print(F("arduino-read "));
+	print(handle);
+	print(' ');
+	print(offset);
+	print(' ');
+	print(size);
+	print(F(" stdout\n"));
+	find("\n");
+	readBytes(buffer, size);
+	wait();
+}
+
+boolean BridgeClass::wait() {
+	int start = millis();
+	while ((millis() - start) < 5000) {
+		if (read() == PROMPT) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void BridgeClass::dropAll() {
 	while (available() > 0) {
 		read();
 	}
-}
-
-boolean BridgeClass::hasResponse(unsigned int handle) {
-	print(F("arduino-has-output "));
-	print(handle);
-	String output = readStringUntil('\n');
-	wait();
-	return output.equals("0");
-}
-
-String BridgeClass::beginRead(unsigned int handle, unsigned int offset,
-		unsigned int size) {
-	print(F("arduino-read-output "));
-	print(handle);
-	print(F(" "));
-	print(offset);
-	print(F(" "));
-	print(size);
-	print(F(" "));
-	String output = readStringUntil('\n');
-	wait();
-	return output;
 }

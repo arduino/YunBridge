@@ -21,8 +21,6 @@
 
 String Curl::get(String url) {
 	asyncGet(url);
-	while (!bridge.hasResponse(handle)) {
-	}
 	return bridge.readString();
 }
 
