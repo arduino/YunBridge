@@ -64,4 +64,21 @@ private:
 	void dropAll();
 };
 
+// This subclass uses a serial port Stream
+class SerialBridgeClass : public BridgeClass {
+public:
+	SerialBridgeClass(HardwareSerial &_serial)
+		: BridgeClass(_serial), serial(_serial) {
+	}
+	
+	void begin() {
+		serial.begin(115200);
+		BridgeClass::begin();
+	}
+private:
+	HardwareSerial &serial;
+};
+
+extern SerialBridgeClass Bridge;
+
 #endif /* BRIDGE_H_ */

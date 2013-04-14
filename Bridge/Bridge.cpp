@@ -125,3 +125,6 @@ void BridgeClass::dropAll() {
 		read();
 	}
 }
+
+// Bridge instance
+SerialBridgeClass Bridge(Serial);
