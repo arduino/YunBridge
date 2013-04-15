@@ -127,4 +127,9 @@ void BridgeClass::dropAll() {
 }
 
 // Bridge instance
-SerialBridgeClass Bridge(Serial);
+#ifdef __AVR_ATmega32U4__
+  // Leonardo variants (where HardwareSerial is Serial1)
+  SerialBridgeClass Bridge(Serial1);
+#else
+  SerialBridgeClass Bridge(Serial);
+#endif
