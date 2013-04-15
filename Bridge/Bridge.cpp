@@ -97,7 +97,7 @@ unsigned long BridgeClass::commandOutputSize(unsigned int handle) {
 }
 
 void BridgeClass::readCommandOutput(unsigned int handle, unsigned int offset, 
-    unsigned int size, char *buffer) {
+    unsigned int size, uint8_t *buffer) {
   print(F("arduino-read "));
   print(handle);
   print(' ');
@@ -106,7 +106,7 @@ void BridgeClass::readCommandOutput(unsigned int handle, unsigned int offset,
   print(size);
   print(F(" stdout\n"));
   find("\n");
-  readBytes(buffer, size);
+  readBytes(reinterpret_cast<char *>(buffer), size);
   wait();
 }
 

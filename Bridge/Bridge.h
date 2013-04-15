@@ -40,7 +40,7 @@ public:
   
   unsigned long commandOutputSize(unsigned int handle);
   void readCommandOutput(unsigned int handle, unsigned int offset, 
-                         unsigned int size, char *buffer);
+                         unsigned int size, uint8_t *buffer);
 
   // Print methods
   size_t write(uint8_t c) { return stream.write(c); }
