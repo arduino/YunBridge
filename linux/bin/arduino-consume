@@ -6,7 +6,7 @@ BASEDIR=/arduino/processes
 HANDLE=$1
 shift
 
-if [ "$HANDLE" -eq "" ] ; then
+if [ "$HANDLE" == "" ] ; then
 	echo no
 	exit 1
 fi
