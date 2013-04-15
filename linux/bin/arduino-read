@@ -1,0 +1,14 @@
+#!/bin/sh
+
+BASEDIR=/arduino/processes
+	
+# Retrieve handle and command
+HANDLE=$1
+SKIP=$2
+COUNT=$3
+
+BASEDIR=$BASEDIR/$HANDLE
+FILE=$BASEDIR/$4
+
+dd if=$FILE bs=1 skip=$SKIP count=$COUNT 2>/dev/null
+

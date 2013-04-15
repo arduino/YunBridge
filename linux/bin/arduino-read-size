@@ -1,0 +1,7 @@
+#!/bin/sh
+
+BASEDIR=/arduino/processes/$1
+FILE=$BASEDIR/$2
+
+ls -l $FILE | awk -F" " '{ print $5 }'
+
