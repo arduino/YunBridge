@@ -37,31 +37,31 @@ void ProcessStandardIO::flush() {
 
 
 void Process::begin(const char *command) {
-	handle = bridge.beginCommand(command);
-	IO.setHandle(handle);
+  handle = bridge.beginCommand(command);
+  IO.setHandle(handle);
 }
 
 void Process::addParameter(const char *param) {
-	bridge.commandAddEscapedParam(param);
+  bridge.commandAddEscapedParam(param);
 }
 
 void Process::runAsynchronously() {
-    bridge.endCommand();
+  bridge.endCommand();
 }
 
 boolean Process::running() {
-	return bridge.commandIsRunning(handle);
+  return bridge.commandIsRunning(handle);
 }
 
 unsigned int Process::exitValue() {
-	return bridge.commandExitValue(handle);
+  return bridge.commandExitValue(handle);
 }
 
 unsigned int Process::run() {
-	runAsynchronously();
-	while (running())
-		delay(100);
-	return exitValue();
+  runAsynchronously();
+  while (running())
+    delay(100);
+  return exitValue();
 }
 
 void Process::close() {

@@ -23,38 +23,38 @@
 
 class ProcessStandardIO : public Stream {
 public:
-	ProcessStandardIO() { }
-	size_t write(uint8_t);
-	int available();
-	int read();
-	int peek();
-	void flush();
+  ProcessStandardIO() { }
+  size_t write(uint8_t);
+  int available();
+  int read();
+  int peek();
+  void flush();
 
-	void setHandle(unsigned int h) { handle = h; }
+  void setHandle(unsigned int h) { handle = h; }
 private:
-	unsigned int handle;
+  unsigned int handle;
 };
 
 class Process {
 public:
-	// Default constructor uses global Bridge instance
-	Process() : bridge(Bridge) { }
-	// Constructor with a user provided BridgeClass instance
-	Process(BridgeClass &_bridge) : bridge(_bridge) { }
+  // Default constructor uses global Bridge instance
+  Process() : bridge(Bridge) { }
+  // Constructor with a user provided BridgeClass instance
+  Process(BridgeClass &_bridge) : bridge(_bridge) { }
   
-	void begin(const char *command);
-	void addParameter(const char *param);
-	unsigned int run();
-	void runAsynchronously();
-	boolean running();
-	unsigned int exitValue();
-	void close();
-	void kill();
+  void begin(const char *command);
+  void addParameter(const char *param);
+  unsigned int run();
+  void runAsynchronously();
+  boolean running();
+  unsigned int exitValue();
+  void close();
+  void kill();
   
 private:
-	BridgeClass &bridge;
-	ProcessStandardIO IO;
-	unsigned int handle;
+  BridgeClass &bridge;
+  ProcessStandardIO IO;
+  unsigned int handle;
 };
 
 #endif

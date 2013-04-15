@@ -23,16 +23,16 @@
 
 class Curl {
 public:
-	Curl(BridgeClass &_bridge) :
-			bridge(_bridge), handle(-1) {
-	}
+  Curl(BridgeClass &_bridge) :
+      bridge(_bridge), handle(-1) {
+  }
 
-	String get(String url);
-	void asyncGet(String url);
+  String get(String url);
+  void asyncGet(String url);
 
 private:
-	BridgeClass &bridge;
-	unsigned int handle;
+  BridgeClass &bridge;
+  unsigned int handle;
 
 };
 

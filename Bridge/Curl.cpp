@@ -20,12 +20,12 @@
 #include "Curl.h"
 
 String Curl::get(String url) {
-	asyncGet(url);
-	return bridge.readString();
+  asyncGet(url);
+  return bridge.readString();
 }
 
 void Curl::asyncGet(String url) {
-	handle = bridge.beginCommand("curl");
-	bridge.commandAddEscapedParam(url);
-	bridge.endCommand();
+  handle = bridge.beginCommand("curl");
+  bridge.commandAddEscapedParam(url);
+  bridge.endCommand();
 }
