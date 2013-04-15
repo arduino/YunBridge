@@ -111,6 +111,7 @@ void BridgeClass::readCommandOutput(unsigned int handle, unsigned int offset,
 }
 
 boolean BridgeClass::wait() {
+  /*
   int start = millis();
   while ((millis() - start) < 5000) {
     if (read() == PROMPT) {
@@ -118,6 +119,8 @@ boolean BridgeClass::wait() {
     }
   }
   return false;
+  */
+  find("arduino# ");
 }
 
 void BridgeClass::dropAll() {

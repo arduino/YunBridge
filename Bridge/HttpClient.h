@@ -16,24 +16,26 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-#ifndef CURL_H_
-#define CURL_H_
+#ifndef HTTPCLIENT_H_
+#define HTTPCLIENT_H_
 
-#include <Arduino.h>
+#include <Process.h>
 
-class Curl {
+class HttpClient : public Process, Stream {
 public:
-  Curl(BridgeClass &_bridge) :
-      bridge(_bridge), handle(-1) {
-  }
 
-  String get(String url);
-  void asyncGet(String url);
+  unsigned int get(const char * url);
+  void asyncGet(const char * url);
+  boolean ready();
+  unsigned int getResult();
 
-private:
-  BridgeClass &bridge;
-  unsigned int handle;
+  // Inline Stream methods to curl process IO
+  size_t write(uint8_t) { /* EMPTY */ }
+  int available() { return IO.available(); }
+  int read() { return IO.read(); }
+  int peek() { return IO.peek(); }
+  void flush() { /* EMPTY */ };
 
 };
 
-#endif /* CURL_H_ */
+#endif /* HTTPCLIENT_H_ */

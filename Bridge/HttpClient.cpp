@@ -16,16 +16,23 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-#include "Bridge.h"
-#include "Curl.h"
+#include "HttpClient.h"
 
-String Curl::get(String url) {
-  asyncGet(url);
-  return bridge.readString();
+unsigned int HttpClient::get(const char *url) {
+  begin("curl");
+  addParameter(url);
+  return run();
 }
 
-void Curl::asyncGet(String url) {
-  handle = bridge.beginCommand("curl");
-  bridge.commandAddEscapedParam(url);
-  bridge.endCommand();
+void HttpClient::asyncGet(const char *url) {
 }
+
+boolean HttpClient::ready() {
+  return running();
+}
+
+unsigned int HttpClient::getResult() {
+  return exitValue();
+}
+
+
