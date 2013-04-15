@@ -2,6 +2,7 @@
 
 void brk() {
   Bridge.print((char)3);
+  Bridge.find("#");
 }
 
 void setup() {
@@ -10,8 +11,12 @@ void setup() {
   Process p;
   p.begin("curl");
   p.addParameter("http://arduino.cc/asciilogo.txt");
-  int r = p.run();
-  Bridge.print(r);brk();
+  p.run();
+  
+  String res = "";
+  while (p.IO.available()>0) {
+    p.IO.read();
+  }
 }
 
 void loop() {

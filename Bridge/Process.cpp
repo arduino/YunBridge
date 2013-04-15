@@ -18,21 +18,67 @@
 
 #include <Process.h>
 
+ProcessStandardIO::~ProcessStandardIO() {
+  if (started)
+    bridge.cleanCommand(handle);
+}
+
+void ProcessStandardIO::setHandle(unsigned int h) { 
+  if (started)
+    bridge.cleanCommand(handle);
+  handle = h; 
+  started = true; 
+}
+
 size_t ProcessStandardIO::write(uint8_t) {
-}
-
-int ProcessStandardIO::available() {
-}
-
-int ProcessStandardIO::read() {
-}
-
-int ProcessStandardIO::peek() {
+  return 1;
 }
 
 void ProcessStandardIO::flush() {
 }
 
+int ProcessStandardIO::available() {
+  if (curr == last) {
+    // Look if there is new data available
+    last = bridge.commandOutputSize(handle);
+  }
+  return (last - curr);
+}
+
+int ProcessStandardIO::read() {
+  if (curr == last)
+    available(); // try to update last
+  if (curr == last)
+    return -1; // no chars available
+
+  doBuffer();
+  buffered--;
+  curr++;
+  return buffer[readPos++];
+}
+
+int ProcessStandardIO::peek() {
+  if (curr == last)
+    available();
+  if (curr == last)
+    return -1; // Chars available
+ 
+  doBuffer();
+  return buffer[readPos];
+}
+
+void ProcessStandardIO::doBuffer() {
+  // If there are already char in buffer exit
+  if (buffered > 0)
+    return;
+
+  // Try to buffer up to 32 characters
+  buffered = last-curr;
+  if (buffered > sizeof(buffer))
+    buffered = sizeof(buffer);
+  readPos = 0;
+  bridge.readCommandOutput(handle, curr, buffered, buffer);
+}
 
 
 

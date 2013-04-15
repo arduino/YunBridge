@@ -23,24 +23,37 @@
 
 class ProcessStandardIO : public Stream {
 public:
-  ProcessStandardIO() { }
+  ProcessStandardIO(BridgeClass &_b) : bridge(_b), started(false),
+    curr(0), last(0), buffered(0), readPos(0) { }
+  ~ProcessStandardIO();
+  void setHandle(unsigned int h);
+
+  // Stream methods
   size_t write(uint8_t);
   int available();
   int read();
   int peek();
   void flush();
-
-  void setHandle(unsigned int h) { handle = h; }
+  
 private:
+  void doBuffer();
+
+  BridgeClass &bridge;
   unsigned int handle;
+  boolean started;
+  unsigned long curr, last, buffered;
+  uint8_t readPos;
+  static const int BUFFER_SIZE = 64;
+  uint8_t buffer[BUFFER_SIZE];
 };
+
 
 class Process {
 public:
   // Default constructor uses global Bridge instance
-  Process() : bridge(Bridge) { }
+  Process() : IO(Bridge), bridge(Bridge) { }
   // Constructor with a user provided BridgeClass instance
-  Process(BridgeClass &_bridge) : bridge(_bridge) { }
+  Process(BridgeClass &_bridge) : IO(_bridge), bridge(_bridge) { }
   
   void begin(const char *command);
   void addParameter(const char *param);
@@ -51,9 +64,10 @@ public:
   void close();
   void kill();
   
+  ProcessStandardIO IO;
+  
 private:
   BridgeClass &bridge;
-  ProcessStandardIO IO;
   unsigned int handle;
 };
 
