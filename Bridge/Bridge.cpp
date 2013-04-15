@@ -69,7 +69,7 @@ boolean BridgeClass::commandIsRunning(unsigned int handle) {
 	return running;
 }
 
-unsigned int BridgeClass::commandExitCode(unsigned int handle) {
+unsigned int BridgeClass::commandExitValue(unsigned int handle) {
 	print(F("cat processes/"));
 	print(handle);
 	print(F("/result\n"));

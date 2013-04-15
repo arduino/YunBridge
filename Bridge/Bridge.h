@@ -35,7 +35,7 @@ public:
 
 	boolean commandIsRunning(unsigned int handle);
 
-	unsigned int commandExitCode(unsigned int handle);
+	unsigned int commandExitValue(unsigned int handle);
 	
 	void cleanCommand(unsigned int handle);
 	
