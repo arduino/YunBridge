@@ -21,18 +21,32 @@
 
 #include <Bridge.h>
 
-class ProcessStandardIO : public Stream {
+class Process : public Stream {
 public:
-  ProcessStandardIO(BridgeClass &_b) : bridge(_b), started(false),
+  // Default constructor uses global Bridge instance
+  Process() : bridge(Bridge), started(false), 
     curr(0), last(0), buffered(0), readPos(0) { }
-  ~ProcessStandardIO();
-  void setHandle(unsigned int h);
+  // Constructor with a user provided BridgeClass instance
+  Process(BridgeClass &_bridge) : bridge(_bridge), started(false),
+    curr(0), last(0), buffered(0), readPos(0) { }
+  ~Process();
+  
+  void begin(const char *command);
+  void addParameter(const char *param);
+  unsigned int run();
+  void runAsynchronously();
+  boolean running();
+  unsigned int exitValue();
+  void close();
+  void kill();
 
-  // Stream methods
-  size_t write(uint8_t);
+  // Stream methods 
+  // (read from process stdout)
   int available();
   int read();
   int peek();
+  // (write to process stdin)
+  size_t write(uint8_t);
   void flush();
   
 private:
@@ -45,30 +59,6 @@ private:
   uint8_t readPos;
   static const int BUFFER_SIZE = 64;
   uint8_t buffer[BUFFER_SIZE];
-};
-
-
-class Process {
-public:
-  // Default constructor uses global Bridge instance
-  Process() : IO(Bridge), bridge(Bridge) { }
-  // Constructor with a user provided BridgeClass instance
-  Process(BridgeClass &_bridge) : IO(_bridge), bridge(_bridge) { }
-  
-  void begin(const char *command);
-  void addParameter(const char *param);
-  unsigned int run();
-  void runAsynchronously();
-  boolean running();
-  unsigned int exitValue();
-  void close();
-  void kill();
-  
-  ProcessStandardIO IO;
-  
-private:
-  BridgeClass &bridge;
-  unsigned int handle;
 };
 
 #endif

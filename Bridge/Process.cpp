@@ -18,26 +18,19 @@
 
 #include <Process.h>
 
-ProcessStandardIO::~ProcessStandardIO() {
+Process::~Process() {
   if (started)
     bridge.cleanCommand(handle);
 }
 
-void ProcessStandardIO::setHandle(unsigned int h) { 
-  if (started)
-    bridge.cleanCommand(handle);
-  handle = h; 
-  started = true; 
-}
-
-size_t ProcessStandardIO::write(uint8_t) {
+size_t Process::write(uint8_t) {
   return 1;
 }
 
-void ProcessStandardIO::flush() {
+void Process::flush() {
 }
 
-int ProcessStandardIO::available() {
+int Process::available() {
   if (curr == last) {
     // Look if there is new data available
     last = bridge.commandOutputSize(handle);
@@ -45,7 +38,7 @@ int ProcessStandardIO::available() {
   return (last - curr);
 }
 
-int ProcessStandardIO::read() {
+int Process::read() {
   if (curr == last)
     available(); // try to update last
   if (curr == last)
@@ -57,7 +50,7 @@ int ProcessStandardIO::read() {
   return buffer[readPos++];
 }
 
-int ProcessStandardIO::peek() {
+int Process::peek() {
   if (curr == last)
     available();
   if (curr == last)
@@ -67,7 +60,7 @@ int ProcessStandardIO::peek() {
   return buffer[readPos];
 }
 
-void ProcessStandardIO::doBuffer() {
+void Process::doBuffer() {
   // If there are already char in buffer exit
   if (buffered > 0)
     return;
@@ -80,11 +73,11 @@ void ProcessStandardIO::doBuffer() {
   bridge.readCommandOutput(handle, curr, buffered, buffer);
 }
 
-
-
 void Process::begin(const char *command) {
+  if (started)
+    bridge.cleanCommand(handle);
   handle = bridge.beginCommand(command);
-  IO.setHandle(handle);
+  started = true;
 }
 
 void Process::addParameter(const char *param) {
