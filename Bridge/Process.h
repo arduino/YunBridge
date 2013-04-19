@@ -32,7 +32,7 @@ public:
   ~Process();
   
   void begin(const char *command);
-  void addParameter(const char *param);
+  void addParameter(const char *param, boolean noEscape = false);
   unsigned int run();
   void runAsynchronously();
   boolean running();

@@ -80,8 +80,11 @@ void Process::begin(const char *command) {
   started = true;
 }
 
-void Process::addParameter(const char *param) {
-  bridge.commandAddEscapedParam(param);
+void Process::addParameter(const char *param, boolean noEscape) {
+  if (noEscape)
+    bridge.print(param);
+  else
+    bridge.commandAddEscapedParam(param);
 }
 
 void Process::runAsynchronously() {
