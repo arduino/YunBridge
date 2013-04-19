@@ -18,13 +18,35 @@
 
 #include "HttpClient.h"
 
+unsigned int HttpClient::get(String &url) {
+  int l = url.length();
+  char *buff = new char[l+1];
+  url.toCharArray(buff, l);
+  buff[l] = 0;
+  int res = get(buff);
+  delete[] buff;
+  return res;
+}
+
 unsigned int HttpClient::get(const char *url) {
   begin("curl");
   addParameter(url);
   return run();
 }
 
-void HttpClient::asyncGet(const char *url) {
+void HttpClient::getAsynchronously(String &url) {
+  int l = url.length();
+  char *buff = new char[l+1];
+  url.toCharArray(buff, l);
+  buff[l] = 0;
+  getAsynchronously(buff);
+  delete[] buff;
+}
+
+void HttpClient::getAsynchronously(const char *url) {
+  begin("curl");
+  addParameter(url);
+  runAsynchronously();
 }
 
 boolean HttpClient::ready() {

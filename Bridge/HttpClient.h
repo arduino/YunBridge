@@ -21,20 +21,15 @@
 
 #include <Process.h>
 
-class HttpClient : public Process, Stream {
+class HttpClient : public Process {
 public:
 
+  unsigned int get(String &url);
   unsigned int get(const char * url);
-  void asyncGet(const char * url);
+  void getAsynchronously(String &url);
+  void getAsynchronously(const char * url);
   boolean ready();
   unsigned int getResult();
-
-  // Inline Stream methods to curl process IO
-  size_t write(uint8_t) { /* EMPTY */ }
-  int available() { return IO.available(); }
-  int read() { return IO.read(); }
-  int peek() { return IO.peek(); }
-  void flush() { /* EMPTY */ };
 
 };
 
