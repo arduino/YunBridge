@@ -25,6 +25,7 @@
 class BridgeClass: public Stream {
 public:
   BridgeClass(Stream &_stream) : stream(_stream), currentHandle(0) {
+    // Empty
   }
 
   void begin();
@@ -40,13 +41,15 @@ public:
   
   unsigned long commandOutputSize(unsigned int handle);
   void readCommandOutput(unsigned int handle, unsigned int offset, 
-                         unsigned int size, uint8_t *buffer);
+                         unsigned int size, uint8_t *buff);
+  void readCommandOutput(unsigned int handle, unsigned int offset, 
+                         unsigned int size, char *buff)
+    { readCommandOutput(handle, offset, size, reinterpret_cast<uint8_t *>(buff)); }
 
   // Print methods
   size_t write(uint8_t c) { return stream.write(c); }
-  size_t write(const uint8_t *buffer, size_t size) { 
-    return stream.write(buffer, size);
-  }
+  size_t write(const uint8_t *buffer, size_t size)
+    { return stream.write(buffer, size); }
 
   // Stream methods
   int available() { return stream.available(); }
@@ -68,7 +71,8 @@ private:
 class SerialBridgeClass : public BridgeClass {
 public:
   SerialBridgeClass(HardwareSerial &_serial)
-      : BridgeClass(_serial), serial(_serial) {
+      : BridgeClass(_serial), serial(_serial) { 
+    // Empty
   }
   
   void begin() {
