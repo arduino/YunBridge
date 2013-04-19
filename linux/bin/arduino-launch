@@ -1,25 +1,19 @@
-#!/bin/sh -x
+#!/bin/sh
 
-# resolving this script path
-BIN_ABSPATH=$(cd "$(dirname "$0")"; pwd)
-
-# resolving messages folder path
-PROCESSES_ABSPATH=$BIN_ABSPATH/../processes
-
-# Retrieve handle and remove it from the params
+BASEDIR=/arduino/processes
+	
+# Retrieve handle and command
 HANDLE=$1
 shift
 
-# Making folder for this process outputs and 
-BASEDIR=$PROCESSES_ABSPATH/$HANDLE
-rm -rf $BASEDIR
+BASEDIR=$BASEDIR/$HANDLE
 mkdir $BASEDIR
 
 OUT_FILE=$BASEDIR/stdout
 ERR_FILE=$BASEDIR/stderr
 IN_FILE=$BASEDIR/stdin
 PID_FILE=$BASEDIR/running
-EXITCODE_FILE=$BASEDIR/exit_code
+RES_FILE=$BASEDIR/result
 
 $* > $OUT_FILE 2> $ERR_FILE &
 PID=$!
@@ -30,6 +24,8 @@ echo $PID > $PID_FILE
 # Wait for process termination
 wait $PID
 
-# Save the exit code
-echo $? > $EXITCODE_FILE
+# Save the result
+echo $? > $RES_FILE
 rm -f $PID_FILE
+
+
