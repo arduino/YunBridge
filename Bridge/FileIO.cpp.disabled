@@ -93,7 +93,7 @@ void File::close() {
   mode = 255;
 }
 
-char *name() {
+char *File::name() {
   return filename;
 }
 

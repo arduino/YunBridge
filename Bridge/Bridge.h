@@ -24,28 +24,28 @@
 
 class BridgeClass: public Stream {
 public:
-  BridgeClass(Stream &_stream) : stream(_stream), currentHandle(0) {
+  BridgeClass(Stream &_stream) : index(0), stream(_stream), currentHandle(0) {
     // Empty
   }
 
   void begin();
-  unsigned int beginCommand(String command);
-  void commandAddEscapedParam(String string);
-  void endCommand();
+  uint8_t runCommand(String &command);
 
-  boolean commandIsRunning(unsigned int handle);
+  bool commandIsRunning(uint8_t handle);
 
-  unsigned int commandExitValue(unsigned int handle);
+  unsigned int commandExitValue(uint8_t handle);
   
-  void cleanCommand(unsigned int handle);
+  void cleanCommand(uint8_t handle);
   
-  unsigned long commandOutputSize(unsigned int handle);
-  void readCommandOutput(unsigned int handle, unsigned int offset, 
-                         unsigned int size, uint8_t *buff);
-  void readCommandOutput(unsigned int handle, unsigned int offset, 
-                         unsigned int size, char *buff)
-    { readCommandOutput(handle, offset, size, reinterpret_cast<uint8_t *>(buff)); }
+  unsigned int commandOutputAvailable(uint8_t handle);
+  unsigned int readCommandOutput(uint8_t handle, uint8_t *buff, unsigned int size);
+  unsigned int readCommandOutput(uint8_t handle, char *buff, unsigned int size)
+    { return readCommandOutput(handle, reinterpret_cast<uint8_t *>(buff), size); }
 
+  void writeCommandInput(uint8_t handle, uint8_t *buff, unsigned int size);
+  void writeCommandInput(uint8_t handle, char *buff, unsigned int size)
+    { writeCommandInput(handle, reinterpret_cast<uint8_t *>(buff), size); }
+  
   // Print methods
   size_t write(uint8_t c) { return stream.write(c); }
   size_t write(const uint8_t *buffer, size_t size)
@@ -58,13 +58,25 @@ public:
   void flush() { stream.flush(); }
 
 private:
+  uint8_t transfer(uint8_t *buff, uint8_t len, uint8_t *rxbuff=NULL, uint8_t rxlen=0);
+  uint8_t index;
+  int timedRead(int timeout);
+  
+private:
+  void crcUpdate(uint8_t c);
+  void crcReset();
+  void crcWrite();
+  bool crcCheck(uint16_t _CRC);
+  uint16_t CRC;
+  
+private:
   static const char CTRL_C = 3;
-  static const char PROMPT = '#';
+  static const char CMD_RECV = 0x00;
   Stream &stream;
   unsigned int currentHandle;
 
-  boolean wait();
   void dropAll();
+  
 };
 
 // This subclass uses a serial port Stream

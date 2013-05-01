@@ -24,21 +24,20 @@
 class Process : public Stream {
 public:
   // Default constructor uses global Bridge instance
-  Process() : bridge(Bridge), started(false), 
-    curr(0), last(0), buffered(0), readPos(0) { }
+  Process() : bridge(Bridge), started(false), buffered(0), readPos(0) { }
   // Constructor with a user provided BridgeClass instance
-  Process(BridgeClass &_bridge) : bridge(_bridge), started(false),
-    curr(0), last(0), buffered(0), readPos(0) { }
+  Process(BridgeClass &_b) : bridge(_b), started(false), buffered(0), readPos(0) { }
   ~Process();
   
+  void begin(String &command);
   void begin(const char *command);
-  void addParameter(const char *param, boolean noEscape = false);
+  void addParameter(String &param);
+  void addParameter(const char *param);
   unsigned int run();
   void runAsynchronously();
   boolean running();
   unsigned int exitValue();
   void close();
-  void kill();
 
   // Stream methods 
   // (read from process stdout)
@@ -50,15 +49,18 @@ public:
   void flush();
   
 private:
-  void doBuffer();
-
   BridgeClass &bridge;
   unsigned int handle;
+  String *cmdline;
   boolean started;
-  unsigned long curr, last, buffered;
+
+private:
+  void doBuffer();
+  uint8_t buffered;
   uint8_t readPos;
   static const int BUFFER_SIZE = 64;
   uint8_t buffer[BUFFER_SIZE];
+  
 };
 
 #endif

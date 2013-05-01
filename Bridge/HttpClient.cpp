@@ -19,13 +19,9 @@
 #include "HttpClient.h"
 
 unsigned int HttpClient::get(String &url) {
-  int l = url.length();
-  char *buff = new char[l+1];
-  url.toCharArray(buff, l);
-  buff[l] = 0;
-  int res = get(buff);
-  delete[] buff;
-  return res;
+  begin("curl");
+  addParameter(url);
+  return run();
 }
 
 unsigned int HttpClient::get(const char *url) {
@@ -35,12 +31,9 @@ unsigned int HttpClient::get(const char *url) {
 }
 
 void HttpClient::getAsynchronously(String &url) {
-  int l = url.length();
-  char *buff = new char[l+1];
-  url.toCharArray(buff, l);
-  buff[l] = 0;
-  getAsynchronously(buff);
-  delete[] buff;
+  begin("curl");
+  addParameter(url);
+  runAsynchronously();
 }
 
 void HttpClient::getAsynchronously(const char *url) {

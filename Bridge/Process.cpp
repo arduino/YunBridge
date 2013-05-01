@@ -19,11 +19,11 @@
 #include <Process.h>
 
 Process::~Process() {
-  if (started)
-    bridge.cleanCommand(handle);
+  close();
 }
 
-size_t Process::write(uint8_t) {
+size_t Process::write(uint8_t c) {
+  bridge.writeCommandInput(handle, &c, 1);
   return 1;
 }
 
@@ -31,33 +31,27 @@ void Process::flush() {
 }
 
 int Process::available() {
-  if (curr == last) {
-    // Look if there is new data available
-    last = bridge.commandOutputSize(handle);
-  }
-  return (last - curr);
+  // Look if there is new data available
+  doBuffer();
+  return buffered;
 }
 
 int Process::read() {
-  if (curr == last)
-    available(); // try to update last
-  if (curr == last)
-    return -1; // no chars available
-
   doBuffer();
-  buffered--;
-  curr++;
-  return buffer[readPos++];
+  if (buffered == 0)
+    return -1; // no chars available
+  else {
+    buffered--;
+    return buffer[readPos++];
+  }
 }
 
 int Process::peek() {
-  if (curr == last)
-    available();
-  if (curr == last)
-    return -1; // Chars available
- 
   doBuffer();
-  return buffer[readPos];
+  if (buffered == 0)
+    return -1; // no chars available
+  else
+    return buffer[readPos];
 }
 
 void Process::doBuffer() {
@@ -66,29 +60,36 @@ void Process::doBuffer() {
     return;
 
   // Try to buffer up to 32 characters
-  buffered = last-curr;
-  if (buffered > sizeof(buffer))
-    buffered = sizeof(buffer);
   readPos = 0;
-  bridge.readCommandOutput(handle, curr, buffered, buffer);
+  buffered = bridge.readCommandOutput(handle, buffer, sizeof(buffer));
+}
+
+void Process::begin(String &command) {
+  close();
+  cmdline = new String(command);
 }
 
 void Process::begin(const char *command) {
-  if (started)
-    bridge.cleanCommand(handle);
-  handle = bridge.beginCommand(command);
-  started = true;
+  close();
+  cmdline = new String(command);
 }
 
-void Process::addParameter(const char *param, boolean noEscape) {
-  if (noEscape)
-    bridge.print(param);
-  else
-    bridge.commandAddEscapedParam(param);
+void Process::addParameter(const char *param) {
+  *cmdline += "\xFE";
+  *cmdline += param;
+}
+
+void Process::addParameter(String &param) {
+  *cmdline += "\xFE";
+  *cmdline += param;
 }
 
 void Process::runAsynchronously() {
-  bridge.endCommand();
+  handle = bridge.runCommand(*cmdline);
+  delete cmdline;
+  cmdline = NULL;
+  
+  started = true;
 }
 
 boolean Process::running() {
@@ -107,8 +108,8 @@ unsigned int Process::run() {
 }
 
 void Process::close() {
-}
-
-void Process::kill() {
+  if (started)
+    bridge.cleanCommand(handle);
+  started = false;
 }
 
