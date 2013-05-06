@@ -35,6 +35,9 @@ cp = CommandProcessor()
 import processes
 processes.init(cp)
 
+import console
+console.init(cp)
+
 pr = packet.PacketReader(cp)
 start_time = time.time()
 with cbreak():
