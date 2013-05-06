@@ -63,6 +63,9 @@ class PacketReader:
     return None
     
   def process(self):
+    # Do a round of runners
+    self.processor.run()
+    
     # Wait for Start Of Packet
     while True:
       c = self.t_read()
