@@ -24,7 +24,7 @@
 
 class BridgeClass: public Stream {
 public:
-  BridgeClass(Stream &_stream) : index(0), stream(_stream), currentHandle(0) {
+  BridgeClass(Stream &_stream) : index(0), stream(_stream), started(false) {
     // Empty
   }
 
@@ -57,10 +57,11 @@ public:
   int peek() { return stream.peek(); }
   void flush() { stream.flush(); }
 
-private:
   uint8_t transfer(uint8_t *buff, uint8_t len, uint8_t *rxbuff=NULL, uint8_t rxlen=0);
+private:
   uint8_t index;
-  int timedRead(int timeout);
+  int timedRead(unsigned int timeout);
+  void dropAll();
   
 private:
   void crcUpdate(uint8_t c);
@@ -73,10 +74,7 @@ private:
   static const char CTRL_C = 3;
   static const char CMD_RECV = 0x00;
   Stream &stream;
-  unsigned int currentHandle;
-
-  void dropAll();
-  
+  bool started;
 };
 
 // This subclass uses a serial port Stream

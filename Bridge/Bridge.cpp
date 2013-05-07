@@ -19,6 +19,10 @@
 #include "Bridge.h"
 
 void BridgeClass::begin() {
+  if (started)
+    return;
+  started = true;
+  
   // TODO: A more robust restart
   // Bridge startup:
   // - If the bridge is not running starts it safely
@@ -45,7 +49,7 @@ uint8_t BridgeClass::runCommand(String &command) {
   // TODO: do it in a more efficient way
   String cmd = "R" + command;
   uint8_t res[1];
-  int l = transfer((uint8_t*)cmd.c_str(), cmd.length(), res, 1);
+  transfer((uint8_t*)cmd.c_str(), cmd.length(), res, 1);
   return res[0];
 }
 
@@ -178,7 +182,7 @@ uint8_t BridgeClass::transfer(uint8_t *buff, uint8_t len,
   }
 }
 
-int BridgeClass::timedRead(int timeout) {
+int BridgeClass::timedRead(unsigned int timeout) {
   int c;
   unsigned long _startMillis = millis();
   do {
