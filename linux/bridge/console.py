@@ -73,6 +73,9 @@ class Console:
   def available(self):
     return len(self.recvbuffer)
     
+  def is_connected(self):
+    return len(self.clients)>0
+    
   def accept(self):
     (client, address) = self.server.accept()
     
@@ -101,18 +104,17 @@ class READ_Command:
     len = ord(data[1])
     return console.read(len)
     
-class AVAILABLE_Command:
+class CONNECTED_Command:
   def run(self, data):
-    res = console.available()
-    if res>255:
-      return '\xFF'
+    if console.is_connected():
+      return '\x01'
     else:
-      return chr(res)
+      return '\x00'
       
 def init(command_processor):
   command_processor.register('P', WRITE_Command())
   command_processor.register('p', READ_Command())
-  command_processor.register('a', AVAILABLE_Command())
+  command_processor.register('a', CONNECTED_Command())
   command_processor.register_runner(console)
   
 def test():
