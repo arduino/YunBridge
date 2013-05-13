@@ -75,6 +75,11 @@ class TCPServer:
     # Default server consumes all data
     return ""
 
+  def send(self, data):
+    # send chunk to all clients
+    for c in self.clients:
+      self.clients_sendbuffer[c] += data
+     
   def accept(self):
     (client, address) = self.server.accept()
     self.sockets.append(client)
@@ -89,7 +94,7 @@ class TCPServer:
     del self.clients_sendbuffer[sock]
     del self.clients_recvbuffer[sock]
 
-class TCPJSONReceiver(TCPServer):
+class TCPJSONServer(TCPServer):
   def __init__(self, port, address='127.0.0.1'):
     TCPServer.__init__(self, port, address)
     self.recv_queue = deque()
@@ -115,6 +120,11 @@ class TCPJSONReceiver(TCPServer):
     except IndexError:
       return None
 
+  def write(self, obj):
+    data = json.write(obj)
+    self.send(data)
+
+# Test
 if __name__ == "__main__":
   bus = TCPJSONReceiver('0.0.0.0', 12345)
   while True:

@@ -38,6 +38,9 @@ processes.init(cp)
 import console
 console.init(cp)
 
+import mailbox
+mailbox.init(cp)
+
 pr = packet.PacketReader(cp)
 start_time = time.time()
 with cbreak():
