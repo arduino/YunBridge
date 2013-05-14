@@ -28,6 +28,13 @@ void BridgeClass::begin() {
   started = true;
   
   // TODO: A more robust restart
+  
+  // Wait for Atheros bootloader to finish startup
+  do {
+    dropAll();
+    delay(1100);
+  } while (available()>0);
+  
   // Bridge startup:
   // - If the bridge is not running starts it safely
   print(CTRL_C);

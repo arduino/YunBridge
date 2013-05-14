@@ -44,7 +44,8 @@ mailbox.init(cp)
 pr = packet.PacketReader(cp)
 start_time = time.time()
 with cbreak():
-  while time.time() - start_time < 100:
+  #while time.time() - start_time < 100:
+  while True:
     res = pr.process()
     if res == False:
       break
