@@ -12,7 +12,10 @@ class Mailbox:
   def run(self):
     json.run()
     if json.available()>0:
-      self.ext_command(json.read())
+      try:
+        self.ext_command(json.read())
+      except:
+        pass
 
   def ext_command(self, msg):
     if not 'command' in msg:
