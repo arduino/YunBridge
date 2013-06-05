@@ -42,7 +42,9 @@ def send(index, msg):
   crc = CRC(stdout)
   crc.write("\xff")        # Packet start
   crc.write(chr(index))    # Message No. inside Pipe
-  crc.write(chr(len(msg))) # Message length
+  l = len(msg)
+  crc.write(chr(l >> 8))   # Message length
+  crc.write(chr(l & 0xFF)) # Message length
   crc.write(msg)           # Payload
   crc.write_crc()          # CRC
   stdout.flush()
@@ -78,18 +80,24 @@ class PacketReader:
     index = self.t_read()
     if index is None:
       return None
-    len = self.t_read()
-    if len is None:
+    len_hi = self.t_read()
+    if len_hi is None:
       return None
-        
+    len_lo = self.t_read()
+    if len_lo is None:
+      return None
+      
     crc = CRC(None)
     crc.write(c)
     crc.write(index)
-    crc.write(len)
+    crc.write(len_hi)
+    crc.write(len_lo)
       
+    len = (ord(len_hi) << 8) + ord(len_lo)
+    
     # Read payload
     data = ""
-    for x in range(ord(len)):
+    for x in range(len):
       c = self.t_read()
       if c is None:
         return None
