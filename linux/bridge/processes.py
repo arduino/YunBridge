@@ -140,7 +140,10 @@ class READ_OUTPUT_Command:
   def run(self, data):
     id = ord(data[0])
     maxlen = ord(data[1])
-    return self.proc.read_output(id, maxlen)
+    res = self.proc.read_output(id, maxlen)
+    if res is None:
+      return ""
+    return res
 
 class AVAILABLE_OUTPUT_Command:
   def __init__(self, processes):
