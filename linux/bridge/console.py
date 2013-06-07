@@ -86,7 +86,6 @@ class Console:
     self.clients_sendbuffer[client] = ""
     
   def close(self, sock):
-    print "closing"
     sock.close()
     self.clients.remove(sock)
     self.sockets.remove(sock)
