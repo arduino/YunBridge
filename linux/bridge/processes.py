@@ -11,15 +11,19 @@ class Processes:
     self.next_id = 0
     
   def create(self, cmd):
+    # Start the background process
+    try:
+      proc = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+      fcntl(proc.stdout.fileno(), F_SETFL, O_NONBLOCK)
+      fcntl(proc.stderr.fileno(), F_SETFL, O_NONBLOCK)
+      proc.buffered_out = ''
+      proc.buffered_err = ''
+    except OSError, e:
+      return None
+    
     # Determine the next id to assign to process
     while self.next_id in self.processes:
       self.next_id = (self.next_id + 1) % 256
-    # Start the background process
-    proc = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    fcntl(proc.stdout.fileno(), F_SETFL, O_NONBLOCK)
-    fcntl(proc.stderr.fileno(), F_SETFL, O_NONBLOCK)
-    proc.buffered_out = ''
-    proc.buffered_err = ''
     self.processes[self.next_id] = proc
     return self.next_id
     
@@ -93,7 +97,9 @@ class RUN_Command:
 
   def run(self, data):
     id = self.proc.create(data.split("\xFE"))
-    return chr(id)
+    if id is None:
+      return chr(1) + chr(0);
+    return chr(0) + chr(id)
 
 class RUNNING_Command:
   def __init__(self, processes):
