@@ -57,6 +57,15 @@ class Files:
     except IOError, e:
       return e.errno
     
+  def tell(self, id):
+    if id not in self.files:
+      return [None, None]
+    file = self.files[id]
+    try:
+      return [0, file.tell()]
+    except IOError, e:
+      return [e.errno, None]
+      
 files = Files()
 
 class OPEN_Command:
@@ -100,10 +109,27 @@ class SEEK_Command:
     err = files.seek(id, pos)
     return chr(err)
 
+class TELL_Command:
+  def run(self, data):
+    id = ord(data[0])
+    [err, pos] = files.tell(id)
+    if pos is None:
+      pos = 0
+      err = 255
+    if err is None:
+      err = 255
+    res = chr(err)
+    res += chr((pos>>24) & 0xFF)
+    res += chr((pos>>16) & 0xFF)
+    res += chr((pos>>8) & 0xFF)
+    res += chr(pos & 0xFF)
+    return res
+    
 def init(command_processor):
   command_processor.register('F', OPEN_Command())
   command_processor.register('f', CLOSE_Command())
   command_processor.register('G', READ_Command())
   command_processor.register('g', WRITE_Command())
   command_processor.register('s', SEEK_Command())
+  command_processor.register('S', TELL_Command())
   
