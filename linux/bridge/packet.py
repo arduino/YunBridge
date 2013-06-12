@@ -5,13 +5,13 @@ from sys import stdin, stdout
 
 @contextmanager
 def cbreak():
-    old_attrs = termios.tcgetattr(stdin)
-    tty.setcbreak(stdin)
-    tty.setraw(stdin)
-    try:
-        yield
-    finally:
-        termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
+  old_attrs = termios.tcgetattr(stdin)
+  tty.setcbreak(stdin)
+  tty.setraw(stdin)
+  try:
+    yield
+  finally:
+    termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
 
 class CRC:
   def __init__(self, file):
@@ -32,8 +32,8 @@ class CRC:
     stdout.write(chr(self.result & 0xFF))
   
   def check(self, crc):
-    if self.result != crc:
-      print "CRC:" + hex(self.result) + "!" + hex(crc)
+    #if self.result != crc:
+    #  print "CRC:" + hex(self.result) + "!" + hex(crc)
     return self.result == crc
     
     
