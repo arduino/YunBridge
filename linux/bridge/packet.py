@@ -2,6 +2,7 @@
 import tty, termios, select
 from contextlib import contextmanager
 from sys import stdin, stdout
+from subprocess import call
 
 @contextmanager
 def cbreak():
@@ -50,13 +51,27 @@ def send(index, msg):
   stdout.flush()
 
 
-  
+class RESET_Command:
+  def __init__(self, reader):
+    self.reader = reader
+    
+  def run(self, data):
+    if data[0] != 'X':
+      call(["/usr/bin/blink-start", "100"])
+      return chr(1)
+    if data[1:4] != '100':
+      call(["/usr/bin/blink-start", "100"])
+      return chr(2)
+    call(["/usr/bin/blink-stop"])
+    return chr(0)
+    
 class PacketReader:
   def __init__(self, processor):
-    self.index = 0
+    self.index = 999
     self.last_response = None
     self.processor = processor
-    
+    self.processor.register('X', RESET_Command(self))
+      
   # Timed read
   def t_read(self):
     ret = select.select([stdin.fileno()], [], [], 0.050)
@@ -93,11 +108,11 @@ class PacketReader:
     crc.write(len_hi)
     crc.write(len_lo)
       
-    len = (ord(len_hi) << 8) + ord(len_lo)
+    len_t = (ord(len_hi) << 8) + ord(len_lo)
     
     # Read payload
     data = ""
-    for x in range(len):
+    for x in range(len_t):
       c = self.t_read()
       if c is None:
         return None
@@ -118,12 +133,13 @@ class PacketReader:
       return None
     
     # Check for reset command
-    if data=='XX':
+    if len(data)==5 and data[0:2]=='XX':
       self.index = ord(index)
      
     # Check for out-of-order packets
     if self.index > ord(index):
-      send(ord(index), self.last_response)
+      if not self.last_response is None:
+        send(ord(index), self.last_response)
       return True
       
     # Process command
