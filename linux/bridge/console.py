@@ -100,7 +100,7 @@ class WRITE_Command:
 
 class READ_Command:
   def run(self, data):
-    len = ord(data[1])
+    len = ord(data[0])
     return console.read(len)
     
 class CONNECTED_Command:
