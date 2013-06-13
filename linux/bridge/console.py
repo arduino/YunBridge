@@ -6,7 +6,7 @@ class Console:
   def __init__(self, port=6571):
     server = socket(AF_INET, SOCK_STREAM)
     server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    server.bind(('0.0.0.0', port))
+    server.bind(('127.0.0.1', port))
     server.listen(1) # No connection backlog
     server.setblocking(0)
     self.server = server
