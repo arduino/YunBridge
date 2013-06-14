@@ -27,9 +27,12 @@ class Mailbox:
       return
 
     if command=='get':
-      k = msg['key']
-      v = self.data_store_get(k)
-      json.write({ 'response' : 'get', 'key' : k, 'value' : v })
+      if msg.has_key('key'):
+        k = msg['key']
+        v = self.data_store_get(k)
+        json.write({ 'response' : 'get', 'key' : k, 'value' : v })
+      else:
+        json.write({ 'response' : 'get', 'value' : self.data_store })
       return
 
     if command=='put':
@@ -39,8 +42,21 @@ class Mailbox:
       json.write({ 'response' : 'put', 'key' : k, 'value' : v })
       return
 
+    if command=='delete':
+      k = msg['key']
+      v = self.data_store_get(k)
+      if v:
+        self.data_store_delete(k)
+        json.write({ 'response' : 'delete', 'key' : k, 'value' : v })
+      else:
+        json.write({ 'response' : 'delete', 'key' : k })
+      return
+
   def data_store_put(self, k, v):
     self.data_store[k] = v
+    
+  def data_store_delete(self, k):
+    del self.data_store[k]
     
   def data_store_get(self, k):
     if k in self.data_store:
