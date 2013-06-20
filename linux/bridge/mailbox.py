@@ -1,8 +1,9 @@
 
 from tcp import TCPJSONServer
 from collections import deque
+import json
 
-json = TCPJSONServer('127.0.0.1', 5700)
+json_server = TCPJSONServer('127.0.0.1', 5700)
 
 class Mailbox:
   def __init__(self):
@@ -10,10 +11,10 @@ class Mailbox:
     self.data_store = { }
 
   def run(self):
-    json.run()
-    if json.available()>0:
+    json_server.run()
+    if json_server.available()>0:
       try:
-        self.ext_command(json.read())
+        self.ext_command(json_server.read())
       except:
         pass
 
@@ -30,16 +31,16 @@ class Mailbox:
       if msg.has_key('key'):
         k = msg['key']
         v = self.data_store_get(k)
-        json.write({ 'response' : 'get', 'key' : k, 'value' : v })
+        json_server.write({ 'response' : 'get', 'key' : k, 'value' : v })
       else:
-        json.write({ 'response' : 'get', 'value' : self.data_store })
+        json_server.write({ 'response' : 'get', 'value' : self.data_store })
       return
 
     if command=='put':
       k = msg['key']
       v = msg['value']
       self.data_store_put(k, v)
-      json.write({ 'response' : 'put', 'key' : k, 'value' : v })
+      json_server.write({ 'response' : 'put', 'key' : k, 'value' : v })
       return
 
     if command=='delete':
@@ -47,9 +48,9 @@ class Mailbox:
       v = self.data_store_get(k)
       if v:
         self.data_store_delete(k)
-        json.write({ 'response' : 'delete', 'key' : k, 'value' : v })
+        json_server.write({ 'response' : 'delete', 'key' : k, 'value' : v })
       else:
-        json.write({ 'response' : 'delete', 'key' : k })
+        json_server.write({ 'response' : 'delete', 'key' : k })
       return
 
   def data_store_put(self, k, v):
@@ -65,7 +66,7 @@ class Mailbox:
       return None
       
   def send(self, data):
-    json.write({ 'request' : 'raw', 'data' : data })
+    json_server.write({ 'request' : 'raw', 'data' : data })
     
   def recv(self):
     if len(self.incoming)>0:
@@ -83,6 +84,15 @@ mailbox = Mailbox()
 class SEND_Command:
   def run(self, data):
     mailbox.send(data)
+    return ""
+
+class SEND_JSON_Command:
+  def run(self, data):
+    try:
+      obj, i = json.read(data)
+      mailbox.send(obj)
+    except:
+      mailbox.send(data)
     return ""
 
 class RECV_Command:
@@ -121,6 +131,7 @@ class DATASTORE_PUT_Command:
     
 def init(command_processor):
   command_processor.register('M', SEND_Command())
+  command_processor.register('J', SEND_JSON_Command())
   command_processor.register('m', RECV_Command())
   command_processor.register('n', AVAILABLE_Command())
   command_processor.register('D', DATASTORE_PUT_Command())
