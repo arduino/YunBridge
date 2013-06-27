@@ -44,6 +44,9 @@ mailbox.init(cp)
 import files
 files.init(cp)
 
+import sockets
+sockets.init(cp)
+
 pr = packet.PacketReader(cp)
 start_time = time.time()
 with cbreak():
