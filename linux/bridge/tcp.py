@@ -18,6 +18,12 @@ class TCPClient:
     except:
       pass
   
+  def recv(self):
+    rd, wr, err = select([self.socket], [], [], 0)
+    if len(rd)>0:
+      return self.socket.recv(4096)
+    return None
+
   def close(self):
     self.socket.close()
     
@@ -26,6 +32,24 @@ class TCPJSONSender(TCPClient):
     data = json.write(obj)
     TCPClient.send(self, data)
     
+class TCPJSONClient(TCPJSONSender):
+  def __init__(self, address, port):
+    TCPClient.__init__(self, address, port)
+    self.recvbuff = ""
+
+  def recv(self):
+    self.recvbuff = TCPClient.recv(self)
+    # try to stream-decode received data
+    try:
+      if len(self.recvbuff)>0:
+        res, i = json.read(self.recvbuff)
+        self.recvbuff = self.recvbuff[i:].lstrip()
+        return res
+    except:
+      # incomplete data...
+      pass
+    return None
+
 class TCPServer:
   def __init__(self, address, port):
     server = socket(AF_INET, SOCK_STREAM)
@@ -74,12 +98,15 @@ class TCPServer:
         self.close(c)
 
   def socket_receive(self, client):
-    chunk = client.recv(4096)
-    if chunk == '':
+    try:
+      chunk = client.recv(4096)
+      if chunk == '':
+        self.close(client)
+        return
+      chunk = self.clients_recvbuffer[client] + chunk
+      self.clients_recvbuffer[client] = self.recv(chunk)
+    except:
       self.close(client)
-      return None
-    chunk = self.clients_recvbuffer[client] + chunk
-    self.clients_recvbuffer[client] = self.recv(chunk)
 
   def recv(self, data):
     # Default server consumes all data
