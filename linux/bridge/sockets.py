@@ -22,7 +22,11 @@ class SocketClient:
     # receive data from socket
     if len(rd)>0:
       if len(self.rxbuff)<1024:
-        chunk = self.sock.recv(1024)
+        try:
+          chunk = self.sock.recv(1024)
+        except:
+          self.close()
+          return
         if chunk == '':
           self.close()
           return
