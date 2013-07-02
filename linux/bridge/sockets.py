@@ -1,6 +1,7 @@
-
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
 from select import select
+import utils
+
 
 class SocketClient:
   def __init__(self, sock):
@@ -69,14 +70,14 @@ class SocketServer:
     for id in self.clients:
       self.clients[id].run()
 
-  def listen(self, addr, port):
+  def listen(self, address, port):
     if not self.server is None:
       self.server.close()
       self.server = None
     try:
       server = socket(AF_INET, SOCK_STREAM)
       server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-      server.bind((addr, port))
+      utils.try_bind(server, address, port)
       server.listen(1) # No connection backlog
       server.setblocking(0)
       self.server = server

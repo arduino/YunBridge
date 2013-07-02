@@ -2,7 +2,9 @@
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
 from select import select
 from collections import deque
-import json, time
+import json
+import utils
+
 
 class TCPClient:
   def __init__(self, address, port):
@@ -54,7 +56,7 @@ class TCPServer:
   def __init__(self, address, port):
     server = socket(AF_INET, SOCK_STREAM)
     server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    self.try_bind(server, address, port, 30)
+    utils.try_bind(server, address, port)
     server.listen(5)
     server.setblocking(0)
     self.server = server
@@ -63,16 +65,6 @@ class TCPServer:
     self.clients_recvbuffer = { }
     self.sockets = [ server ]
 
-  def try_bind(self, socket, address, port, timeout=10):
-    start_time = time.time()
-    while (time.time() - start_time) < timeout:
-      try:
-        return socket.bind((address, port))
-      except:
-        time.sleep(1)
-    # try one last time, just to throw up an exception...
-    return socket.bind((address, port))
-    
   def run(self):
     rd, wr, err = select(self.sockets, [], self.sockets, 0)
 

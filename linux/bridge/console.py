@@ -1,12 +1,12 @@
-
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
 from select import select
+import utils
 
 class Console:
   def __init__(self, port=6571):
     server = socket(AF_INET, SOCK_STREAM)
     server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    server.bind(('127.0.0.1', port))
+    utils.try_bind(server, '127.0.0.1', port)
     server.listen(1)  # No connection backlog
     server.setblocking(0)
     self.server = server
@@ -118,7 +118,7 @@ def init(command_processor):
   command_processor.register('p', READ_Command())
   command_processor.register('a', CONNECTED_Command())
   command_processor.register_runner(console)
-  
+
 def test():
   while True:
     console.process(1)
