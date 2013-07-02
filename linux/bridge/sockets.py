@@ -1,4 +1,4 @@
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from select import select
 import utils
 
@@ -67,8 +67,8 @@ class SocketServer:
     self.next_id = 0
 
   def run(self):
-    for id in self.clients:
-      self.clients[id].run()
+    for client_id in self.clients:
+      self.clients[client_id].run()
 
   def listen(self, address, port):
     if not self.server is None:
@@ -104,26 +104,26 @@ class SocketServer:
     self.clients[self.next_id] = client
     return self.next_id
 
-  def recv(self, id, maxlen):
-    if not id in self.clients:
+  def recv(self, client_id, maxlen):
+    if not client_id in self.clients:
       return None
-    return self.clients[id].recv(maxlen)
+    return self.clients[client_id].recv(maxlen)
 
-  def send(self, id, data):
-    if not id in self.clients:
+  def send(self, client_id, data):
+    if not client_id in self.clients:
       return None
-    self.clients[id].send(data)
+    self.clients[client_id].send(data)
     return True
      
-  def is_connected(self, id):
-    if not id in self.clients:
+  def is_connected(self, client_id):
+    if not client_id in self.clients:
       return None
-    return self.clients[id].is_connected()
+    return self.clients[client_id].is_connected()
 
-  def close(self, id):
-    if not id in self.clients:
+  def close(self, client_id):
+    if not client_id in self.clients:
       return None
-    self.clients[id].close()
+    self.clients[client_id].close()
     return True
     
 server = SocketServer()
@@ -146,15 +146,15 @@ class ACCEPT_Command:
 
 class WRITE_Command:
   def run(self, data):
-    id = ord(data[0])
-    server.send(id, data[1:])
+    client_id = ord(data[0])
+    server.send(client_id, data[1:])
     return ''
 
 class READ_Command:
   def run(self, data):
-    id = ord(data[0])
-    len = ord(data[1])
-    res = server.recv(id, len)
+    client_id = ord(data[0])
+    length = ord(data[1])
+    res = server.recv(client_id, length)
     if res is None:
       return ''
     else:
@@ -162,16 +162,16 @@ class READ_Command:
     
 class CONNECTED_Command:
   def run(self, data):
-    id = ord(data[0])
-    if server.is_connected(id):
+    client_id = ord(data[0])
+    if server.is_connected(client_id):
       return '\x01'
     else:
       return '\x00'
       
 class CLOSE_Command:
   def run(self, data):
-    id = ord(data[0])
-    server.close(id)
+    client_id = ord(data[0])
+    server.close(client_id)
     return ''
 
 def init(command_processor):

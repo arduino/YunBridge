@@ -1,4 +1,4 @@
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from select import select
 import utils
 
@@ -103,8 +103,8 @@ class WRITE_Command:
 
 class READ_Command:
   def run(self, data):
-    len = ord(data[0])
-    return console.read(len)
+    length = ord(data[0])
+    return console.read(length)
     
 class CONNECTED_Command:
   def run(self, data):

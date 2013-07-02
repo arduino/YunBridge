@@ -15,15 +15,15 @@ def cbreak():
     termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
 
 class CRC:
-  def __init__(self, file):
+  def __init__(self, a_file):
     self.result = 0xAAAA
-    self.file = file
+    self.file = a_file
     
   def write(self, data):
     while len(data) > 0:
       if not self.file is None:
         self.file.write(data[0])
-      self.result = self.result ^ ord(data[0])
+      self.result ^= ord(data[0])
       self.result = (self.result >> 8) + ((self.result & 0xFF) << 8)
       data = data[1:]
       

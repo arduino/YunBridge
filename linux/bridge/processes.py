@@ -27,32 +27,32 @@ class Processes:
     self.processes[self.next_id] = proc
     return self.next_id
     
-  def is_running(self, id):
-    if id not in self.processes:
+  def is_running(self, proc_id):
+    if proc_id not in self.processes:
       return False
-    proc = self.processes[id]
+    proc = self.processes[proc_id]
     if proc.poll() is None:
       return True
     else:
       return False
       
-  def wait(self, id):
-    if id not in self.processes:
+  def wait(self, proc_id):
+    if proc_id not in self.processes:
       return None
-    proc = self.processes[id]
+    proc = self.processes[proc_id]
     return proc.wait()
     
-  def clean(self, id):
-    if id not in self.processes:
+  def clean(self, proc_id):
+    if proc_id not in self.processes:
       return
-    proc = self.processes[id]
+    proc = self.processes[proc_id]
     if proc.poll() is None:
       try:
         proc.kill()
       except OSError:
         # Trap: [Errno 3] No such process
         pass
-    del self.processes[id]
+    del self.processes[proc_id]
   
   def try_buffer_output(self, proc):
     if len(proc.buffered_out) < 32: 
@@ -62,10 +62,10 @@ class Processes:
         # Traps: [Errno 11] Resource temporarily unavailable
         pass
       
-  def read_output(self, id, maxlen):
-    if id not in self.processes:
+  def read_output(self, proc_id, maxlen):
+    if proc_id not in self.processes:
       return None
-    proc = self.processes[id]
+    proc = self.processes[proc_id]
     self.try_buffer_output(proc)
     if len(proc.buffered_out) < maxlen:
       res = proc.buffered_out
@@ -75,17 +75,17 @@ class Processes:
       proc.buffered_out = proc.buffered_out[maxlen:]
     return res
 
-  def available_output(self, id):
-    if id not in self.processes:
+  def available_output(self, proc_id):
+    if proc_id not in self.processes:
       return None
-    proc = self.processes[id]
+    proc = self.processes[proc_id]
     self.try_buffer_output(proc)
     return len(proc.buffered_out)
                
-  def write_input(self, id, data):
-    if id not in self.processes:
+  def write_input(self, proc_id, data):
+    if proc_id not in self.processes:
       return
-    proc = self.processes[id]
+    proc = self.processes[proc_id]
     proc.stdin.write(data)
     proc.stdin.flush()
     
@@ -96,18 +96,18 @@ class RUN_Command:
     self.proc = processes
 
   def run(self, data):
-    id = self.proc.create(data.split('\xFE'))
-    if id is None:
-      return chr(1) + chr(0);
-    return chr(0) + chr(id)
+    proc_id = self.proc.create(data.split('\xFE'))
+    if proc_id is None:
+      return chr(1) + chr(0)
+    return chr(0) + chr(proc_id)
 
 class RUNNING_Command:
   def __init__(self, processes):
     self.proc = processes
   
   def run(self, data):
-    id = ord(data[0])
-    res = self.proc.is_running(id)
+    proc_id = ord(data[0])
+    res = self.proc.is_running(proc_id)
     if res:
       return '\x01'
     else:
@@ -118,8 +118,8 @@ class WAIT_Command:
     self.proc = processes
   
   def run(self, data):
-    id = ord(data[0])
-    res = self.proc.wait(id)
+    proc_id = ord(data[0])
+    res = self.proc.wait(proc_id)
     if res is None:
       res = 0
     return chr((res >> 8) & 0xFF) + chr(res & 0xFF)
@@ -129,8 +129,8 @@ class CLEAN_UP_Command:
     self.proc = processes
   
   def run(self, data):
-    id = ord(data[0])
-    self.proc.clean(id)
+    proc_id = ord(data[0])
+    self.proc.clean(proc_id)
     return ''
 
 class READ_OUTPUT_Command:
@@ -138,9 +138,9 @@ class READ_OUTPUT_Command:
     self.proc = processes
   
   def run(self, data):
-    id = ord(data[0])
+    proc_id = ord(data[0])
     maxlen = ord(data[1])
-    res = self.proc.read_output(id, maxlen)
+    res = self.proc.read_output(proc_id, maxlen)
     if res is None:
       return ''
     return res
@@ -150,8 +150,8 @@ class AVAILABLE_OUTPUT_Command:
     self.proc = processes
   
   def run(self, data):
-    id = ord(data[0])
-    avail = self.proc.available_output(id)
+    proc_id = ord(data[0])
+    avail = self.proc.available_output(proc_id)
     if avail is None:
       avail = 0
     return chr(avail)
@@ -161,9 +161,9 @@ class WRITE_INPUT_Command:
     self.proc = processes
   
   def run(self, data):
-    id = ord(data[0])
+    proc_id = ord(data[0])
     data = data[1:]
-    self.proc.write_input(id, data)
+    self.proc.write_input(proc_id, data)
     return ''
 
 def init(command_processor):
