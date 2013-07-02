@@ -96,7 +96,7 @@ class RUN_Command:
     self.proc = processes
 
   def run(self, data):
-    id = self.proc.create(data.split("\xFE"))
+    id = self.proc.create(data.split('\xFE'))
     if id is None:
       return chr(1) + chr(0);
     return chr(0) + chr(id)
@@ -131,7 +131,7 @@ class CLEAN_UP_Command:
   def run(self, data):
     id = ord(data[0])
     self.proc.clean(id)
-    return ""
+    return ''
 
 class READ_OUTPUT_Command:
   def __init__(self, processes):
@@ -142,7 +142,7 @@ class READ_OUTPUT_Command:
     maxlen = ord(data[1])
     res = self.proc.read_output(id, maxlen)
     if res is None:
-      return ""
+      return ''
     return res
 
 class AVAILABLE_OUTPUT_Command:
@@ -164,7 +164,7 @@ class WRITE_INPUT_Command:
     id = ord(data[0])
     data = data[1:]
     self.proc.write_input(id, data)
-    return ""
+    return ''
 
 def init(command_processor):
   command_processor.register('R', RUN_Command(processes))

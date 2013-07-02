@@ -21,11 +21,11 @@ class CommandProcessor:
       runner.run()
       
   def process(self, data):
-    if data=='XX':
+    if data == 'XX':
       for cmd in self.commands:
-        if "reset" in dir(cmd):
+        if 'reset' in dir(cmd):
           cmd.reset()
-      return ""
+      return ''
       
     cmd = self.commands[data[0]]
     return cmd.run(data[1:])

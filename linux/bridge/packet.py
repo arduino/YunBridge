@@ -20,7 +20,7 @@ class CRC:
     self.file = file
     
   def write(self, data):
-    while len(data)>0:
+    while len(data) > 0:
       if not self.file is None:
         self.file.write(data[0])
       self.result = self.result ^ ord(data[0])
@@ -34,14 +34,14 @@ class CRC:
   
   def check(self, crc):
     #if self.result != crc:
-    #  print "CRC:" + hex(self.result) + "!" + hex(crc)
+    #  print 'CRC:' + hex(self.result) + '!' + hex(crc)
     return self.result == crc
     
     
 
 def send(index, msg):
   crc = CRC(stdout)
-  crc.write("\xff")        # Packet start
+  crc.write('\xff')        # Packet start
   crc.write(chr(index))    # Message No. inside Pipe
   l = len(msg)
   crc.write(chr(l >> 8))   # Message length
@@ -57,12 +57,12 @@ class RESET_Command:
     
   def run(self, data):
     if data[0] != 'X':
-      call(["/usr/bin/blink-start", "100"])
+      call(['/usr/bin/blink-start', '100'])
       return chr(1)
     if data[1:4] != '100':
-      call(["/usr/bin/blink-start", "100"])
+      call(['/usr/bin/blink-start', '100'])
       return chr(2)
-    call(["/usr/bin/blink-stop"])
+    call(['/usr/bin/blink-stop'])
     return chr(0)
     
 class PacketReader:
@@ -88,7 +88,7 @@ class PacketReader:
       c = self.t_read()
       if c is None:
         return None
-      if ord(c)==0xFF:
+      if ord(c) == 0xFF:
         break
           
     # Read index and len
@@ -111,7 +111,7 @@ class PacketReader:
     len_t = (ord(len_hi) << 8) + ord(len_lo)
     
     # Read payload
-    data = ""
+    data = ''
     for x in range(len_t):
       c = self.t_read()
       if c is None:
@@ -133,7 +133,7 @@ class PacketReader:
       return None
     
     # Check for reset command
-    if len(data)==5 and data[0:2]=='XX':
+    if len(data) == 5 and data[0:2] == 'XX':
       self.index = ord(index)
      
     # Check for out-of-order packets

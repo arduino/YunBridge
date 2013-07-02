@@ -5,8 +5,8 @@ from select import select
 class SocketClient:
   def __init__(self, sock):
     self.sock = sock
-    self.txbuff = ""
-    self.rxbuff = ""
+    self.txbuff = ''
+    self.rxbuff = ''
     self.connected = True
 
   def run(self):
@@ -15,12 +15,12 @@ class SocketClient:
 
     rd, wr, err = select([self.sock], [self.sock], [self.sock], 0)
 
-    if len(err)>0:
+    if len(err) > 0:
       self.close()
       return
 
     # receive data from socket
-    if len(rd)>0:
+    if len(rd) > 0:
       if len(self.rxbuff)<1024:
         try:
           chunk = self.sock.recv(1024)
@@ -33,20 +33,20 @@ class SocketClient:
         self.rxbuff += chunk
         
     # send data to socket
-    if len(wr)>0:
-      if len(self.txbuff)>0:
+    if len(wr) > 0:
+      if len(self.txbuff) > 0:
         sent = self.sock.send(self.txbuff)
         self.txbuff = self.txbuff[sent:]
 
   def recv(self, maxlen):
-    if len(self.rxbuff)==0:
-      return ""
+    if len(self.rxbuff) == 0:
+      return ''
     if len(self.rxbuff) > maxlen:
       res = self.rxbuff[:maxlen]
       self.rxbuff = self.rxbuff[maxlen:]
     else:
       res = self.rxbuff
-      self.rxbuff = ""
+      self.rxbuff = ''
     return res
 
   def send(self, data):
@@ -89,7 +89,7 @@ class SocketServer:
       return None
 
     rd, wr, err = select([self.server], [], [], 0)
-    if len(rd)==0:
+    if len(rd) == 0:
       return None
 
     # Accept new connections
@@ -139,7 +139,7 @@ class ACCEPT_Command:
   def run(self, data):
     c = server.accept()
     if c is None:
-      return ""
+      return ''
     else:
       return chr(c)
 
@@ -147,7 +147,7 @@ class WRITE_Command:
   def run(self, data):
     id = ord(data[0])
     server.send(id, data[1:])
-    return ""
+    return ''
 
 class READ_Command:
   def run(self, data):
@@ -155,7 +155,7 @@ class READ_Command:
     len = ord(data[1])
     res = server.recv(id, len)
     if res is None:
-      return ""
+      return ''
     else:
       return res
     
@@ -171,7 +171,7 @@ class CLOSE_Command:
   def run(self, data):
     id = ord(data[0])
     server.close(id)
-    return ""
+    return ''
 
 def init(command_processor):
   command_processor.register('N', LISTEN_Command())
@@ -200,6 +200,6 @@ def test():
       server.close(0)
       server.close(1)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   test()
   

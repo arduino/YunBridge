@@ -7,7 +7,7 @@ class Console:
     server = socket(AF_INET, SOCK_STREAM)
     server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     server.bind(('127.0.0.1', port))
-    server.listen(1) # No connection backlog
+    server.listen(1)  # No connection backlog
     server.setblocking(0)
     self.server = server
     self.clients = [ ]
@@ -15,34 +15,37 @@ class Console:
     self.sockets = [ server ]
     
     # Data waiting to be transferred to sockets
-    self.sendbuffer = ""
+    self.sendbuffer = ''
     # Data waiting to be transferred to PacketProcessor
-    self.recvbuffer = ""
+    self.recvbuffer = ''
     
   def run(self):
-    rd, wr, err = select(self.sockets, [], self.sockets, 0)
+    sockets_to_read_from, sockets_to_write_to, err = select(self.sockets, [], [], 0)
     
     # Accept new connections
-    if self.server in rd:
+    if self.server in sockets_to_read_from:
       self.accept()
-      rd.remove(self.server)
+      sockets_to_read_from.remove(self.server)
       
     # Read from sockets
-    if len(self.sendbuffer)<1024:
-      for sock in rd:
+    if len(self.sendbuffer) < 1024:
+      for sock in sockets_to_read_from:
         self.socket_receive(sock)
     
     # Write buffers to sockets    
-    rd, wr, err = select([], self.clients, [], 0)
-    for c in wr:
-      buff = self.clients_sendbuffer[c]
-      sent = c.send(buff)
-      self.clients_sendbuffer[c] = buff[sent:]
-    
+    sockets_to_read_from, sockets_to_write_to, err = select([], self.clients, [], 0)
+    for client in sockets_to_write_to:
+      try:
+        buff = self.clients_sendbuffer[client]
+        sent = client.send(buff)
+        self.clients_sendbuffer[client] = buff[sent:]
+      except:
+        self.close(client)
+
     # Drop starving clients
-    for c in self.clients:
-      if len(self.clients_sendbuffer[c])>8192:
-        self.close(c)
+    for client in self.clients:
+      if len(self.clients_sendbuffer[client]) > 8192:
+        self.close(client)
         
   def socket_receive(self, client):
     chunk = client.recv(1024)
@@ -52,9 +55,9 @@ class Console:
     self.recvbuffer += chunk
         
     # send chunk as echo to all other clients
-    for c in self.clients:
-      if c != client:
-        self.clients_sendbuffer[c] += chunk
+    for current_client in self.clients:
+      if current_client != client:
+        self.clients_sendbuffer[current_client] += chunk
             
   def write(self, data):
     # send chunk to all clients
@@ -64,7 +67,7 @@ class Console:
   def read(self, maxlen):
     if maxlen > len(self.recvbuffer):
       res = self.recvbuffer
-      self.recvbuffer = ""
+      self.recvbuffer = ''
     else:
       res = self.recvbuffer[:maxlen]
       self.recvbuffer = self.recvbuffer[maxlen:]
@@ -74,7 +77,7 @@ class Console:
     return len(self.recvbuffer)
     
   def is_connected(self):
-    return len(self.clients)>0
+    return len(self.clients) > 0
     
   def accept(self):
     (client, address) = self.server.accept()
@@ -83,7 +86,7 @@ class Console:
     
     self.sockets.append(client)
     self.clients.append(client)
-    self.clients_sendbuffer[client] = ""
+    self.clients_sendbuffer[client] = ''
     
   def close(self, sock):
     sock.close()
@@ -96,7 +99,7 @@ console = Console()
 class WRITE_Command:
   def run(self, data):
     console.write(data)
-    return ""
+    return ''
 
 class READ_Command:
   def run(self, data):
@@ -120,6 +123,5 @@ def test():
   while True:
     console.process(1)
     
-if __name__ == "__main__":
+if __name__ == '__main__':
   test()
-  

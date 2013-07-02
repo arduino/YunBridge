@@ -12,7 +12,7 @@ class Mailbox:
 
   def run(self):
     json_server.run()
-    if json_server.available()>0:
+    if json_server.available() > 0:
       try:
         self.ext_command(json_server.read())
       except:
@@ -23,11 +23,11 @@ class Mailbox:
       return
     command = msg['command']
 
-    if command=='raw':
+    if command == 'raw':
       self.incoming.append(msg['data'])
       return
 
-    if command=='get':
+    if command == 'get':
       if msg.has_key('key'):
         k = msg['key']
         v = self.data_store_get(k)
@@ -36,14 +36,14 @@ class Mailbox:
         json_server.write({ 'response' : 'get', 'value' : self.data_store })
       return
 
-    if command=='put':
+    if command == 'put':
       k = msg['key']
       v = msg['value']
       self.data_store_put(k, v)
       json_server.write({ 'response' : 'put', 'key' : k, 'value' : v })
       return
 
-    if command=='delete':
+    if command == 'delete':
       k = msg['key']
       v = self.data_store_get(k)
       if v:
@@ -69,12 +69,12 @@ class Mailbox:
     json_server.write({ 'request' : 'raw', 'data' : data })
     
   def recv(self):
-    if len(self.incoming)>0:
+    if len(self.incoming) > 0:
       return self.incoming.popleft()
     return None
             
   def peek(self):
-    if len(self.incoming)>0:
+    if len(self.incoming) > 0:
       return self.incoming[0]
     else:
       return None
@@ -84,7 +84,7 @@ mailbox = Mailbox()
 class SEND_Command:
   def run(self, data):
     mailbox.send(data)
-    return ""
+    return ''
 
 class SEND_JSON_Command:
   def run(self, data):
@@ -93,13 +93,13 @@ class SEND_JSON_Command:
       mailbox.send(obj)
     except:
       mailbox.send(data)
-    return ""
+    return ''
 
 class RECV_Command:
   def run(self, data):
     msg = mailbox.recv()
     if msg is None:
-      return ""
+      return ''
     else:
       return msg
 
@@ -117,7 +117,7 @@ class DATASTORE_GET_Command:
   def run(self, data):
     res = mailbox.data_store_get(data)
     if res is None:
-      return ""
+      return ''
     else:
       return res
     

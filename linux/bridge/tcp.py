@@ -12,7 +12,7 @@ class TCPClient:
   
   def send(self, data):
     try:
-      while len(data)>0:
+      while len(data) > 0:
         l = self.socket.send(data)
         data = data[l:]
     except:
@@ -20,7 +20,7 @@ class TCPClient:
   
   def recv(self):
     rd, wr, err = select([self.socket], [], [], 0)
-    if len(rd)>0:
+    if len(rd) > 0:
       return self.socket.recv(4096)
     return None
 
@@ -35,13 +35,13 @@ class TCPJSONSender(TCPClient):
 class TCPJSONClient(TCPJSONSender):
   def __init__(self, address, port):
     TCPClient.__init__(self, address, port)
-    self.recvbuff = ""
+    self.recvbuff = ''
 
   def recv(self):
     self.recvbuff = TCPClient.recv(self)
     # try to stream-decode received data
     try:
-      if len(self.recvbuff)>0:
+      if len(self.recvbuff) > 0:
         res, i = json.read(self.recvbuff)
         self.recvbuff = self.recvbuff[i:].lstrip()
         return res
@@ -87,15 +87,18 @@ class TCPServer:
 
     # Write buffers to sockets
     rd, wr, err = select([], self.clients, [], 0)
-    for c in wr:
-      buff = self.clients_sendbuffer[c]
-      sent = c.send(buff)
-      self.clients_sendbuffer[c] = buff[sent:]
+    for client in wr:
+      try:
+        buff = self.clients_sendbuffer[client]
+        sent = client.send(buff)
+        self.clients_sendbuffer[client] = buff[sent:]
+      except:
+        self.close(client)
     
     # Drop starving clients
-    for c in self.clients:
-      if len(self.clients_sendbuffer[c])>8192:
-        self.close(c)
+    for client in self.clients:
+      if len(self.clients_sendbuffer[client]) > 8192:
+        self.close(client)
 
   def socket_receive(self, client):
     try:
@@ -110,7 +113,7 @@ class TCPServer:
 
   def recv(self, data):
     # Default server consumes all data
-    return ""
+    return ''
 
   def send(self, data):
     # send chunk to all clients
@@ -121,8 +124,8 @@ class TCPServer:
     (client, address) = self.server.accept()
     self.sockets.append(client)
     self.clients.append(client)
-    self.clients_sendbuffer[client] = ""
-    self.clients_recvbuffer[client] = ""
+    self.clients_sendbuffer[client] = ''
+    self.clients_recvbuffer[client] = ''
 
   def close(self, sock):
     sock.close()
@@ -139,7 +142,7 @@ class TCPJSONServer(TCPServer):
   def recv(self, data):
     # try to stream-decode received data
     try:
-      while len(data)>0:
+      while len(data) > 0:
         res, i = json.read(data)
         self.recv_queue.append(res)
         data = data[i:].lstrip()
@@ -149,7 +152,7 @@ class TCPJSONServer(TCPServer):
     return data
 
   def available(self):
-    return len(self.recv_queue)>0
+    return len(self.recv_queue) > 0
 
   def read(self):
     try:
@@ -162,7 +165,7 @@ class TCPJSONServer(TCPServer):
     self.send(data)
 
 # Test
-if __name__ == "__main__":
+if __name__ == '__main__':
   bus = TCPJSONReceiver('0.0.0.0', 12345)
   while True:
     bus.run()
