@@ -5,25 +5,24 @@ import utils, socket
 
 
 class SocketClient:
-  def __init__(self, sock):
-    self.sock = sock
+  def __init__(self):
     self.txbuff = ''
     self.rxbuff = ''
-    self.connected = True
     self.connecting = False
-
-  def __init__(self, address, port):
-    self.txbuff = ''
-    self.rxbuff = ''
     self.connected = False
-    self.connecting = True
 
+  def set_sock(self, sock):
+    self.sock = sock
+    self.connected = True
+
+  def connect(self, address, port):
     self.sock = socket.socket(AF_INET, SOCK_STREAM)
     self.sock.setblocking(0)
     try:
       self.sock.connect((address, port))
     except socket.error, e:
       pass
+    self.connecting = True
 
   def run(self):
     if self.connecting:
@@ -103,7 +102,8 @@ class SocketServer:
 
   def connect(self, address, port):
     # Determine the next id to assign to socket
-    client = SocketClient(address, port)
+    client = SocketClient()
+    client.connect(address, port)
     while self.next_id in self.clients:
       self.next_id = (self.next_id + 1) % 256
     self.clients[self.next_id] = client
@@ -135,7 +135,8 @@ class SocketServer:
     # Accept new connections
     (client_sock, address) = self.server.accept()
     # IP filtering could be here
-    client = SocketClient(client_sock)
+    client = SocketClient()
+    client.set_sock(client_sock)
     
     # Determine the next id to assign to socket
     while self.next_id in self.clients:
@@ -154,6 +155,11 @@ class SocketServer:
     self.clients[id].send(data)
     return True
      
+  def send_to_all(self, data):
+    for id in self.clients:
+      self.send(id, data)
+    return True
+
   def is_connected(self, id):
     if not id in self.clients:
       return None
@@ -204,6 +210,11 @@ class WRITE_Command:
     server.send(id, data[1:])
     return ''
 
+class WRITE_TO_ALL_Command:
+  def run(self, data):
+    server.send_to_all(data)
+    return ''
+
 class READ_Command:
   def run(self, data):
     id = ord(data[0])
@@ -245,6 +256,7 @@ def init(command_processor):
   command_processor.register('j', CLOSE_Command())
   command_processor.register('c', CONNECTING_Command())
   command_processor.register('C', CONNECT_Command())
+  command_processor.register('b', WRITE_TO_ALL_Command())
   command_processor.register_runner(server)
   
 def test():
