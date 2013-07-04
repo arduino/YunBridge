@@ -137,7 +137,7 @@ class PacketReader:
       self.index = ord(index)
      
     # Check for out-of-order packets
-    if self.index > ord(index):
+    if self.index != ord(index):
       if not self.last_response is None:
         send(ord(index), self.last_response)
       return True
