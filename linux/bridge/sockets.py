@@ -1,6 +1,7 @@
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
+from socket import AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, SO_ERROR
+from socket import gethostname
 from select import select
-import utils
+import utils, socket
 
 
 class SocketClient:
@@ -9,8 +10,34 @@ class SocketClient:
     self.txbuff = ''
     self.rxbuff = ''
     self.connected = True
+    self.connecting = False
+
+  def __init__(self, address, port):
+    self.txbuff = ''
+    self.rxbuff = ''
+    self.connected = False
+    self.connecting = True
+
+    self.sock = socket.socket(AF_INET, SOCK_STREAM)
+    self.sock.setblocking(0)
+    try:
+      self.sock.connect((address, port))
+    except socket.error, e:
+      pass
 
   def run(self):
+    if self.connecting:
+      rd, wr, err = select([], [self.sock], [self.sock], 0)
+      if len(wr)>0:
+        self.connecting = False
+        self.connected = True
+        connect_result = self.sock.getsockopt(SOL_SOCKET, SO_ERROR)
+        if connect_result != 0:
+          self.close()
+          return
+      if len(err)>0:
+        self.close()
+        return
     if not self.connected:
       return
 
@@ -56,9 +83,13 @@ class SocketClient:
   def close(self):
     self.sock.close()
     self.connected = False
+    self.connecting = False
 
   def is_connected(self):
     return self.connected
+
+  def is_connecting(self):
+    return self.connecting
 
 class SocketServer:
   def __init__(self):
@@ -70,12 +101,20 @@ class SocketServer:
     for id in self.clients:
       self.clients[id].run()
 
+  def connect(self, address, port):
+    # Determine the next id to assign to socket
+    client = SocketClient(address, port)
+    while self.next_id in self.clients:
+      self.next_id = (self.next_id + 1) % 256
+    self.clients[self.next_id] = client
+    return self.next_id
+    
   def listen(self, address, port):
     if not self.server is None:
       self.server.close()
       self.server = None
     try:
-      server = socket(AF_INET, SOCK_STREAM)
+      server = socket.socket(AF_INET, SOCK_STREAM)
       server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
       utils.try_bind(server, address, port)
       server.listen(1) # No connection backlog
@@ -120,6 +159,11 @@ class SocketServer:
       return None
     return self.clients[id].is_connected()
 
+  def is_connecting(self, id):
+    if not id in self.clients:
+      return None
+    return self.clients[id].is_connecting()
+
   def close(self, id):
     if not id in self.clients:
       return None
@@ -136,6 +180,15 @@ class LISTEN_Command:
       return '\x01'
     else:
       return '\x00'
+
+class CONNECT_Command:
+  def run(self, data):
+    port = (ord(data[0]) << 8) + ord(data[1])
+    c = server.connect(data[2:], port)
+    if c is None:
+      return ''
+    else:
+      return chr(c)
 
 class ACCEPT_Command:
   def run(self, data):
@@ -169,6 +222,14 @@ class CONNECTED_Command:
     else:
       return '\x00'
       
+class CONNECTING_Command:
+  def run(self, data):
+    id = ord(data[0])
+    if server.is_connecting(id):
+      return '\x01'
+    else:
+      return '\x00'
+
 class CLOSE_Command:
   def run(self, data):
     id = ord(data[0])
@@ -182,6 +243,8 @@ def init(command_processor):
   command_processor.register('l', WRITE_Command())
   command_processor.register('L', CONNECTED_Command())
   command_processor.register('j', CLOSE_Command())
+  command_processor.register('c', CONNECTING_Command())
+  command_processor.register('C', CONNECT_Command())
   command_processor.register_runner(server)
   
 def test():
@@ -202,6 +265,20 @@ def test():
       server.close(0)
       server.close(1)
 
+def test_client():
+  from time import sleep
+  i = server.connect('192.168.1.100', 5555)
+  while server.is_connecting(i):
+    server.run()
+  if not server.is_connected(i):
+    print "error"
+    return
+  print "connected"
+  server.send(i, "test")
+  server.run()
+  server.close(i)
+  server.run()
+
 if __name__ == '__main__':
-  test()
+  test_client()
   
