@@ -124,6 +124,7 @@ class SocketServer:
     if not id in self.clients:
       return None
     self.clients[id].close()
+    del self.clients[id]
     return True
     
 server = SocketServer()
