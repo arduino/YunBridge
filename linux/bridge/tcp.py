@@ -82,8 +82,9 @@ class TCPServer:
     for client in wr:
       try:
         buff = self.clients_sendbuffer[client]
-        sent = client.send(buff)
-        self.clients_sendbuffer[client] = buff[sent:]
+        if len(buff) > 0:
+          sent = client.send(buff)
+          self.clients_sendbuffer[client] = buff[sent:]
       except:
         self.close(client)
     
