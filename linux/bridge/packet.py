@@ -80,6 +80,9 @@ class PacketReader:
     return None
     
   def process(self):
+    if self.processor.finished:
+      return False
+      
     # Do a round of runners
     self.processor.run()
     

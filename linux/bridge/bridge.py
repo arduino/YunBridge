@@ -9,6 +9,7 @@ class CommandProcessor:
   def __init__(self):
     self.commands = { }
     self.runners = [ ]
+    self.finished = False
     
   def register_runner(self, runner):
     self.runners.append(runner)
@@ -21,12 +22,16 @@ class CommandProcessor:
       runner.run()
       
   def process(self, data):
-    if data == 'XX':
+    if data == 'XXXXX':
+      print 'Goodbye...'
+      self.finished = True
+      return ''
+      
+    if data[0:2] == 'XX':
       for cmd in self.commands:
         if 'reset' in dir(cmd):
           cmd.reset()
-      return ''
-      
+
     cmd = self.commands[data[0]]
     return cmd.run(data[1:])
 
