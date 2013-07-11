@@ -65,6 +65,11 @@ class Files:
       return [0, file.tell()]
     except IOError, e:
       return [e.errno, None]
+
+  def isDir(self, filename):
+    from os import path
+    return path.isdir(filename)
+        
       
 files = Files()
 
@@ -124,12 +129,24 @@ class TELL_Command:
     res += chr((pos>>8) & 0xFF)
     res += chr(pos & 0xFF)
     return res
+
+
+class ISDIRECTORY_Command:
+  def run(self, data):
+    filename = data[0:]
+    if files.isDir(filename) is True:
+      return chr(1)
+    else:
+      return chr(0)
+
+
     
 def init(command_processor):
   command_processor.register('F', OPEN_Command())
   command_processor.register('f', CLOSE_Command())
   command_processor.register('G', READ_Command())
   command_processor.register('g', WRITE_Command())
+  command_processor.register('i', ISDIRECTORY_Command())
   command_processor.register('s', SEEK_Command())
   command_processor.register('S', TELL_Command())
   
