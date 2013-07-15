@@ -16,17 +16,20 @@ def cbreak():
 
 class CRC:
   def __init__(self, file):
-    self.result = 0xAAAA
+    self.result = 0xFFFF
     self.file = file
     
   def write(self, data):
     while len(data) > 0:
       if not self.file is None:
         self.file.write(data[0])
-      self.result = self.result ^ ord(data[0])
-      self.result = (self.result >> 8) + ((self.result & 0xFF) << 8)
+      tmp = data
+      tmp = chr(ord(tmp[0]) ^ (self.result & 0xFF))
+      tmp = chr(ord(tmp[0]) ^ ((ord(tmp[0]) << 4) & 0xFF))
+      self.result = (((ord(tmp[0]) << 8) & 0xFFFF) | (self.result >> 8)) ^ ((ord(tmp[0]) >> 4) & 0xFF) ^ ((ord(tmp[0]) << 3) & 0xFFFF)
       data = data[1:]
-      
+
+
   def write_crc(self):
     #print hex(self.result)
     stdout.write(chr(self.result >> 8))
