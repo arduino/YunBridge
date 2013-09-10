@@ -1,8 +1,0 @@
-app
-core
-.idea
-*/.cproject
-*/.project
-*/.settings
-build
-*/Debug

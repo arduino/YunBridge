@@ -1,7 +1,0 @@
-#!/bin/sh
-	
-rm -rf /arduino
-mkdir /arduino
-mkdir /arduino/processes
-cd /arduino
-
