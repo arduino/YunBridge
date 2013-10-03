@@ -4,17 +4,18 @@
 Bridge Client PHP Class
 ------------------------
 by Luca Soltoggio - 2013
+http://www.arduinoelettronica.com/
 
 Released under GPL v.2 license
 
 Requirements
 ------------
-In order to use this class you have to install php5, php5-mod-sockets and php5-mod-json and php5-cgi or php5-cli
+In order to use this class you have to install php5, php5-mod-sockets, php5-mod-json and php5-cgi (or php5-cli)
 
 Usage
 -----
 The usage is the same as bridgeclient.py
-You have only two methods: get and put (see example.php)
+You have just two methods: get and put (see example.php)
 
 */
 
