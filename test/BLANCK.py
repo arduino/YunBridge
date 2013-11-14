@@ -1,6 +1,6 @@
-import AbstractBridgeTest
+from BaseBridgeTest import BaseBridgeTest
 
-class TestSequenceFunctions(AbstractBridgeTest.BridgeTest):
+class TestSequenceFunctions(BaseBridgeTest):
         
     def test_BLANCK(self):
         pass

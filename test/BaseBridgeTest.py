@@ -1,4 +1,5 @@
-import serial
+import unittest
+import serial, time
 
 class CRC:
   def __init__(self, serObj):
@@ -25,3 +26,30 @@ class CRC:
     #if self.result != crc:
     #  print 'CRC:' + hex(self.result) + '!' + hex(crc)
     return self.result == crc
+
+
+class BaseBridgeTest(unittest.TestCase):
+    def setUp(self):
+       self.ser = serial.Serial()
+       self.ser.baudrate = 115200
+       self.ser.port = "/dev/ttyACM0"
+       self.ser.open()
+       self.ser.write("\n")
+       time.sleep(1)
+       self.ser.write("\n")
+       time.sleep(1)
+       self.ser.write("run-bridge\n")
+       time.sleep(1)
+       self.crc = CRC(self.ser) 
+
+    def tearDown(self):
+       message = 'XXXXX'
+       self.crc.write('\xFF')
+       self.crc.write('\x00')
+       l = len(message)
+       self.crc.write(chr(l >> 8))
+       self.crc.write(chr(l & 0xFF))	
+       self.crc.write(message)
+       self.crc.write_crc()
+       self.ser.close()
+	
