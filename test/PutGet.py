@@ -4,7 +4,7 @@ from BaseBridgeTest import BaseBridgeTest
 class TestSequenceFunctions(BaseBridgeTest):
     def test_PutGet(self):
         print "put command"
-        message = 'Da\xFE50'
+        message = 'Da\xFE5'
         self.send(message)
 
         print "get command"

@@ -2,7 +2,6 @@ import unittest
 import serial
 import time
 
-
 class CRC:
     def __init__(self, serObj):
         self.result = 0xFFFF
@@ -31,7 +30,9 @@ class CRC:
 
 
 class BaseBridgeTest(unittest.TestCase):
+
     def setUp(self):
+        self.count = 0
         self.ser = serial.Serial()
         self.ser.baudrate = 115200
         self.ser.port = "/dev/ttyACM0"
@@ -50,7 +51,8 @@ class BaseBridgeTest(unittest.TestCase):
     def send(self, message):
         crc = CRC(self.ser)
         crc.write('\xFF')
-        crc.write('\x00')
+        crc.write(chr(self.count))
+        self.count = self.count+1
         l = len(message)
         crc.write(chr(l >> 8))
         crc.write(chr(l & 0xFF))
