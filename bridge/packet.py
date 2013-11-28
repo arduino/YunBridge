@@ -25,22 +25,20 @@
 ##
 ##    Copyright 2013 Arduino LLC (http://www.arduino.cc/)
 
-import os, tty, termios, select
+import tty, termios, select
 from contextlib import contextmanager
 from sys import stdin, stdout
 from subprocess import call
 
 @contextmanager
 def cbreak():
-  if hasattr(stdin, "fileno") and os.isatty(stdin.fileno()):
-    old_attrs = termios.tcgetattr(stdin)
-    tty.setcbreak(stdin)
-    tty.setraw(stdin)
+  old_attrs = termios.tcgetattr(stdin)
+  tty.setcbreak(stdin)
+  tty.setraw(stdin)
   try:
     yield
   finally:
-    if hasattr(stdin, "fileno") and os.isatty(stdin.fileno()):
-      termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
+    termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
 
 class CRC:
   def __init__(self, file):
@@ -94,7 +92,7 @@ class RESET_Command:
       call(['/usr/bin/blink-start', '100'])
       return chr(2)
     call(['/usr/bin/blink-stop'])
-    return chr(0)
+    return chr(0) + '101' # send the actual bridge version
     
 class PacketReader:
   def __init__(self, processor):
