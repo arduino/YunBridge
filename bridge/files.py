@@ -96,6 +96,19 @@ class Files:
     from os import path
     return path.isdir(filename)
         
+  def size(self, id):
+    from os import SEEK_END, SEEK_SET
+    if id not in self.files:
+      return [None, None]
+    file = self.files[id]
+    try:
+      old_position = file.tell()
+      file.seek(0, SEEK_END)
+      size = file.tell()
+      file.seek(old_position, SEEK_SET)
+      return [0, size]
+    except IOError, e:
+      return [e.errno, None]
       
 files = Files()
 
@@ -156,6 +169,21 @@ class TELL_Command:
     res += chr(pos & 0xFF)
     return res
 
+class SIZE_Command:
+  def run(self, data):
+    id = ord(data[0])
+    [err, size] = files.size(id)
+    if size is None:
+      size = 0
+    if err is None:
+      err = 255
+    res = chr(err)
+    res += chr((size>>24) & 0xFF)
+    res += chr((size>>16) & 0xFF)
+    res += chr((size>>8) & 0xFF)
+    res += chr(size & 0xFF)
+    return res
+
 
 class ISDIRECTORY_Command:
   def run(self, data):
@@ -175,4 +203,5 @@ def init(command_processor):
   command_processor.register('i', ISDIRECTORY_Command())
   command_processor.register('s', SEEK_Command())
   command_processor.register('S', TELL_Command())
+  command_processor.register('t', SIZE_Command())
   
