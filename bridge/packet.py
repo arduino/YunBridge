@@ -25,20 +25,22 @@
 ##
 ##    Copyright 2013 Arduino LLC (http://www.arduino.cc/)
 
-import tty, termios, select
+import os, tty, termios, select
 from contextlib import contextmanager
 from sys import stdin, stdout
 from subprocess import call
 
 @contextmanager
 def cbreak():
-  old_attrs = termios.tcgetattr(stdin)
-  tty.setcbreak(stdin)
-  tty.setraw(stdin)
+  if hasattr(stdin, "fileno") and os.isatty(stdin.fileno()):
+    old_attrs = termios.tcgetattr(stdin)
+    tty.setcbreak(stdin)
+    tty.setraw(stdin)
   try:
     yield
   finally:
-    termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
+    if hasattr(stdin, "fileno") and os.isatty(stdin.fileno()):
+      termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
 
 class CRC:
   def __init__(self, file):
