@@ -2,10 +2,12 @@ import unittest
 import serial
 import time
 
+
 class CRC:
     def __init__(self, serObj):
         self.result = 0xFFFF
         self.ser = serObj
+        self.count = 0
 
     def write(self, data):
         while len(data) > 0:
@@ -29,13 +31,35 @@ class CRC:
         return self.result == crc
 
 
-class BaseBridgeTest(unittest.TestCase):
+class Dataclass:
+    def __init__(self, serObj, crcObj):
+        self.ser = serObj
+        self.crc = crcObj
 
+    def timedRead(self):
+        c = self.ser.read()
+        if c != "":
+            print int(c)
+            return int(c)
+        else:
+            return 0
+
+    def transfer(self, message):
+        print self.crc.write("\xFF")               #Start of Packet
+        print self.crc.write(chr(self.crc.count))  #Message Index
+        l = len(message)
+        print self.crc.write(chr(l >> 8))          #Message length (hi)
+        print self.crc.write(chr(l & 0xFF))        #Message length (lo)
+        print self.crc.write(message)
+        print self.crc.write_crc()
+        self.crc.count = self.crc.count + 1  #Update message index
+
+class BaseBridgeTest(unittest.TestCase):
     def setUp(self):
-        self.count = 0
         self.ser = serial.Serial()
         self.ser.baudrate = 115200
         self.ser.port = "/dev/ttyACM0"
+        self.ser.timeout = 0.005
         self.ser.open()
         self.ser.write("\n")
         time.sleep(1)
@@ -43,20 +67,12 @@ class BaseBridgeTest(unittest.TestCase):
         time.sleep(1)
         self.ser.write("run-bridge\n")
         time.sleep(1)
+        self.crc = CRC(self.ser)
+        self.datas = Dataclass(self.ser, self.crc)
+        print("Bridge started")             #uncomment to debug
 
     def tearDown(self):
         message = 'XXXXX'
-        self.send(message)
-
-    def send(self, message):
-        crc = CRC(self.ser)
-        crc.write('\xFF')
-        crc.write(chr(self.count))
-        self.count = self.count+1
-        l = len(message)
-        crc.write(chr(l >> 8))
-        crc.write(chr(l & 0xFF))
-        crc.write(message)
-        crc.write_crc()
-        self.ser.flush()
-	
+        self.datas.transfer(message)
+        print("Bridge closed")
+        print self.ser.read(9999999)  #print the number of received bytes

@@ -1,17 +1,14 @@
-from BaseBridgeTest import BaseBridgeTest
-
+from BaseBridgeTest import *
 
 class TestSequenceFunctions(BaseBridgeTest):
     def test_PutGet(self):
         print "put command"
-        message = 'Da\xFE5'
-        self.send(message)
+        message = 'Dk\xFEb'
+        self.datas.transfer(message)
 
         print "get command"
-        message = 'da'
-        self.send(message)
-        print self.ser.read()
-
+        message = 'dk'
+        self.datas.transfer(message)
 
 if __name__ == '__main__':
     unittest.main()
