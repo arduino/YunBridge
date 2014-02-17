@@ -121,6 +121,15 @@ class RUN_Command:
   def __init__(self, processes):
     self.proc = processes
 
+  def debug(self, data):
+    return "RUN PROCESS: %s" % (data.split('\xFE'))
+
+  def debug_response(self, data):
+    if data[0]=='\x00':
+      return "DONE, PROCESS ID IS %d" % (ord(data[1]))
+    else:
+      return "ERROR"
+
   def run(self, data):
     id = self.proc.create(data.split('\xFE'))
     if id is None:
@@ -130,7 +139,17 @@ class RUN_Command:
 class RUNNING_Command:
   def __init__(self, processes):
     self.proc = processes
-  
+
+  def debug(self, data):
+    id = ord(data[0])
+    return "PROC %d IS RUNNING?" % (id)
+
+  def debug_response(self, data):
+    if data[0]=='\x00':
+      return 'NO'
+    else:
+      return 'YES'
+
   def run(self, data):
     id = ord(data[0])
     res = self.proc.is_running(id)
@@ -143,6 +162,13 @@ class WAIT_Command:
   def __init__(self, processes):
     self.proc = processes
   
+  def debug(self, data):
+    id = ord(data[0])
+    return "GET PROC %d RESULT" % (id)
+
+  def debug_response(self, data):
+    return "RETVAL = %d" % (ord(data[0]) << 8 + ord(data[1]))
+
   def run(self, data):
     id = ord(data[0])
     res = self.proc.wait(id)
@@ -154,6 +180,10 @@ class CLEAN_UP_Command:
   def __init__(self, processes):
     self.proc = processes
   
+  def debug(self, data):
+    id = ord(data[0])
+    return "CLEAN PROC %d" % (id)
+
   def run(self, data):
     id = ord(data[0])
     self.proc.clean(id)
@@ -163,6 +193,11 @@ class READ_OUTPUT_Command:
   def __init__(self, processes):
     self.proc = processes
   
+  def debug(self, data):
+    id = ord(data[0])
+    maxlen = ord(data[1])
+    return "READ stdout FROM PROC %d (MAXLEN=%d)" % (id, maxlen)
+
   def run(self, data):
     id = ord(data[0])
     maxlen = ord(data[1])
@@ -174,7 +209,14 @@ class READ_OUTPUT_Command:
 class AVAILABLE_OUTPUT_Command:
   def __init__(self, processes):
     self.proc = processes
-  
+
+  def debug(self, data):
+    id = ord(data[0])
+    return "AVAILABLE BYTES FROM stdout OF PROC %d?" % (id)
+ 
+  def debug_response(self, data):
+    return "%d BYTES" % (ord(data[0]))
+
   def run(self, data):
     id = ord(data[0])
     avail = self.proc.available_output(id)
@@ -186,6 +228,10 @@ class WRITE_INPUT_Command:
   def __init__(self, processes):
     self.proc = processes
   
+  def debug(self, data):
+    id = ord(data[0])
+    return "WRITE TO stdin OF PROC %d: " % (id, data[1:].encode('HEX'))
+
   def run(self, data):
     id = ord(data[0])
     data = data[1:]

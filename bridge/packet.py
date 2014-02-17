@@ -27,7 +27,7 @@
 
 import os, tty, termios, select
 from contextlib import contextmanager
-from sys import stdin, stdout
+from sys import stdin, stdout, stderr
 from subprocess import call
 
 @contextmanager
@@ -102,14 +102,18 @@ class PacketReader:
     self.last_response = None
     self.processor = processor
     self.processor.register('X', RESET_Command(self))
-      
+    self.debugging = False
+ 
   # Timed read
   def t_read(self):
     ret = select.select([stdin.fileno()], [], [], 0.050)
     if ret[0] == [stdin.fileno()]:
       return stdin.read(1)
     return None
-    
+
+  def debug(self):
+    self.debugging = True
+
   def process(self):
     if self.processor.finished:
       return False
@@ -165,7 +169,15 @@ class PacketReader:
     crc_lo = ord(crc_lo)
     if not crc.check((crc_hi << 8) + crc_lo):
       return None
-    
+
+    # Debugging?    
+    if self.debugging:
+      print >> stderr
+      print >> stderr,   "%02x LEN=%02d < %c %s" % (ord(index), len(data), data[0:1], data[1:].encode('HEX'))
+      dbg = self.processor.debug(data)
+      if dbg:
+        print >> stderr, "            %s" % (dbg)
+
     # Check for reset command
     if len(data) == 5 and data[0:2] == 'XX':
       self.index = ord(index)
@@ -178,6 +190,13 @@ class PacketReader:
       
     # Process command
     result = self.processor.process(data)
+
+    # Debugging?
+    if self.debugging:
+      print >> stderr, "%02x LEN=%02d > %s" % (ord(index), len(result), result.encode('HEX'))
+      dbg = self.processor.debug_response(data, result)
+      if dbg:
+        print >> stderr, "            %s" % (dbg)
     
     # Send Acknowledge
     send(self.index, result)

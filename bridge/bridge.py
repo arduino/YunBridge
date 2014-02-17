@@ -62,6 +62,20 @@ class CommandProcessor:
     cmd = self.commands[data[0]]
     return cmd.run(data[1:])
 
+  def debug(self, data):
+    cmd = self.commands[data[0]]
+    if hasattr(cmd, 'debug'):
+      return cmd.debug(data[1:])
+    else:
+      return None
+
+  def debug_response(self, data, resp):
+    cmd = self.commands[data[0]]
+    if hasattr(cmd, 'debug_response'):
+      return cmd.debug_response(resp)
+    else:
+      return None
+
 cp = CommandProcessor()
 
 import processes
@@ -80,6 +94,8 @@ import sockets
 sockets.init(cp)
 
 pr = packet.PacketReader(cp)
+# Uncomment to enable debugging on stderr
+# pr.debug()
 start_time = time.time()
 with cbreak():
   #while time.time() - start_time < 100:
