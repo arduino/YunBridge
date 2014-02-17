@@ -113,6 +113,16 @@ class Files:
 files = Files()
 
 class OPEN_Command:
+  def debug(self, data):
+    return "OPEN FILE '%s' MODE '%s'" % (data[1:], data[0]+'b')
+
+  def debug_response(self, data):
+    err = ord(data[0])
+    if err==0:
+      return "OPENED WITH ID %d" % (ord(data[1]))
+    else:
+      return "ERROR %d" % (err)
+
   def run(self, data):
     [err, id] = files.open(data[1:], data[0]+'b')
     if err!=0:
@@ -121,12 +131,25 @@ class OPEN_Command:
       return chr(0) + chr(id)
 
 class CLOSE_Command:
+  def debug(self, data):
+    return "CLOSE FILE %d" % (ord(data[0]))
+
   def run(self, data):
     id = ord(data[0])
     files.close(id)
     return '\x00'
       
 class READ_Command:
+  def debug(self, data):
+    return "READ FILE %d (MAXLEN=%d)" % (ord(data[0]), ord(data[1]))
+
+  def debug_response(self, data):
+    err = ord(data[0])
+    if err==0:
+      return "OK"
+    else:
+      return "ERROR %d" % (err)
+
   def run(self, data):
     id = ord(data[0])
     maxlen = ord(data[1])
@@ -137,6 +160,16 @@ class READ_Command:
       return chr(0) + res
 
 class WRITE_Command:
+  def debug(self, data):
+    return "WRITE FILE %d: %s" % (ord(data[0]), data[1:].encode('HEX'))
+
+  def debug_response(self, data):
+    err = ord(data[0])
+    if err==0:
+      return "OK"
+    else:
+      return "ERROR %d" % (err)
+    
   def run(self, data):
     id = ord(data[0])
     data = data[1:]
@@ -144,6 +177,20 @@ class WRITE_Command:
     return chr(err)
     
 class SEEK_Command:
+  def debug(self, data):
+    pos =  ord(data[1]) << 24
+    pos += ord(data[2]) << 16
+    pos += ord(data[3]) << 8
+    pos += ord(data[4])
+    return "SEEK FILE %d: %s" % (ord(data[0]), pos)
+
+  def debug_response(self, data):
+    err = ord(data[0])
+    if err==0:
+      return "OK"
+    else:
+      return "ERROR %d" % (err)
+
   def run(self, data):
     id = ord(data[0])
     pos =  ord(data[1]) << 24
@@ -154,6 +201,20 @@ class SEEK_Command:
     return chr(err)
 
 class TELL_Command:
+  def debug(self, data):
+    return "TELL FILE %d" % (ord(data[0]))
+
+  def debug_response(self, data):
+    err = ord(data[0])
+    if err==0:
+      pos =  ord(data[1]) << 24
+      pos += ord(data[2]) << 16
+      pos += ord(data[3]) << 8
+      pos += ord(data[4])
+      return "POSITION %d" % (pos)
+    else:
+      return "ERROR %d" % (err)
+
   def run(self, data):
     id = ord(data[0])
     [err, pos] = files.tell(id)
@@ -170,6 +231,20 @@ class TELL_Command:
     return res
 
 class SIZE_Command:
+  def debug(self, data):
+    return "SIZE FILE %d" % (ord(data[0]))
+
+  def debug_response(self, data):
+    err = ord(data[0])
+    if err==0:
+      pos =  ord(data[1]) << 24
+      pos += ord(data[2]) << 16
+      pos += ord(data[3]) << 8
+      pos += ord(data[4])
+      return "SIZE %d" % (pos)
+    else:
+      return "ERROR %d" % (err)
+
   def run(self, data):
     id = ord(data[0])
     [err, size] = files.size(id)
@@ -186,6 +261,15 @@ class SIZE_Command:
 
 
 class ISDIRECTORY_Command:
+  def debug(self, data):
+    return "FILE '%s' IS DIRECTORY?" % (data)
+
+  def debug_response(self, data):
+    if data[0]=='\x00':
+      return "NO"
+    else:
+      return "YES"
+
   def run(self, data):
     filename = data[0:]
     if files.isDir(filename) is True:
