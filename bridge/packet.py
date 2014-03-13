@@ -46,17 +46,22 @@ class CRC:
   def __init__(self, file):
     self.result = 0xFFFF
     self.file = file
+
+  def crc_update(crc, data):
+    crc = crc & 0xFFFF
+    data = data & 0xFF
+    data = data ^ (crc & 0xFF)
+    tmp = (data << 4) & 0xFF
+    data = data ^ tmp
+    hi8 = (crc >> 8) & 0xFF  
+    return (((data << 8) | hi8) ^ (data >> 4) ^ (data << 3)) & 0xFFFF
     
   def write(self, data):
     while len(data) > 0:
       if not self.file is None:
         self.file.write(data[0])
-      tmp = data
-      tmp = chr(ord(tmp[0]) ^ (self.result & 0xFF))
-      tmp = chr(ord(tmp[0]) ^ ((ord(tmp[0]) << 4) & 0xFF))
-      self.result = (((ord(tmp[0]) << 8) & 0xFFFF) | (self.result >> 8)) ^ ((ord(tmp[0]) >> 4) & 0xFF) ^ ((ord(tmp[0]) << 3) & 0xFFFF)
+      self.result = self.crc_update(self.result, ord(data[0]))
       data = data[1:]
-
 
   def write_crc(self):
     #print hex(self.result)
