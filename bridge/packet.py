@@ -47,7 +47,7 @@ class CRC:
     self.result = 0xFFFF
     self.file = file
 
-  def crc_update(crc, data):
+  def crc_update(self, crc, data):
     crc = crc & 0xFFFF
     data = data & 0xFF
     data = data ^ (crc & 0xFF)
