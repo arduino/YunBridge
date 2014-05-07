@@ -28,7 +28,7 @@
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
 from select import select
 from collections import deque
-import json
+import streamingjson
 import utils
 
 
@@ -57,7 +57,7 @@ class TCPClient:
     
 class TCPJSONSender(TCPClient):
   def send(self, obj):
-    data = json.write(obj)
+    data = streamingjson.write(obj)
     TCPClient.send(self, data)
     
 class TCPJSONClient(TCPJSONSender):
@@ -70,7 +70,7 @@ class TCPJSONClient(TCPJSONSender):
     # try to stream-decode received data
     try:
       if len(self.recvbuff) > 0:
-        res, i = json.read(self.recvbuff)
+        res, i = streamingjson.read(self.recvbuff)
         self.recvbuff = self.recvbuff[i:].lstrip()
         return res
     except:
@@ -162,7 +162,7 @@ class TCPJSONServer(TCPServer):
     # try to stream-decode received data
     try:
       while len(data) > 0:
-        res, i = json.read(data)
+        res, i = streamingjson.read(data)
         self.recv_queue.append(res)
         data = data[i:].lstrip()
     except:
@@ -180,7 +180,7 @@ class TCPJSONServer(TCPServer):
       return None
 
   def write(self, obj):
-    data = json.write(obj)
+    data = streamingjson.write(obj)
     self.send(data)
 
 # Test
