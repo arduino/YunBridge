@@ -27,7 +27,7 @@
 
 from tcp import TCPJSONServer
 from collections import deque
-import json
+import streamingjson
 
 json_server = TCPJSONServer('127.0.0.1', 5700)
 
@@ -115,7 +115,7 @@ class SEND_Command:
 class SEND_JSON_Command:
   def run(self, data):
     try:
-      obj, i = json.read(data)
+      obj, i = streamingjson.read(data)
       mailbox.send(obj)
     except:
       mailbox.send(data)

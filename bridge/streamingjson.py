@@ -5,6 +5,9 @@ import types
 ##    Copyright (C) 2005  Patrick D. Logan
 ##    Contact mailto:patrickdlogan@stardecisions.com
 ##
+##    streamingjson.py adds support for streaming.
+##    Copyright (C) 2014  Arduino
+##
 ##    This library is free software; you can redistribute it and/or
 ##    modify it under the terms of the GNU Lesser General Public
 ##    License as published by the Free Software Foundation; either
@@ -38,7 +41,7 @@ class _StringGenerator(object):
 			raise StopIteration
 	def all(self):
 		return self.string
-	
+
 	def pos(self):
 		return self.index
 
@@ -65,7 +68,7 @@ class JsonReader(object):
         if peek == '{':
             return self._readObject()
         elif peek == '[':
-            return self._readArray()            
+            return self._readArray()
         elif peek == '"':
             return self._readString()
         elif peek == '-' or peek.isdigit():
@@ -248,7 +251,7 @@ class JsonReader(object):
         return self._generator.next()
 
 class JsonWriter(object):
-        
+
     def _append(self, s):
         self._results.append(s)
 
