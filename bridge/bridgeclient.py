@@ -23,7 +23,7 @@
 ##    invalidate any other reasons why the executable file might be covered by
 ##    the GNU General Public License.
 ##
-##    Copyright 2013 Arduino LLC (http://www.arduino.cc/)
+##    Copyright 2014 Arduino LLC (http://www.arduino.cc/)
 
 from tcp import TCPJSONClient
 from time import sleep
@@ -81,3 +81,8 @@ class BridgeClient:
       r = r['value']
     json.close()
     return r
+
+  def mailbox(self, message):
+    json = TCPJSONClient('127.0.0.1', 5700)
+    json.send({'command': 'raw', 'data': message})
+    json.close()

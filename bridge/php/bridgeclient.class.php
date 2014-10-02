@@ -5,6 +5,8 @@ Bridge Client PHP Class
 ------------------------
 by Luca Soltoggio - 2013
 http://www.arduinoelettronica.com/
+by Federico Fissore - 2014
+http://arduino.cc/
 
 Released under GPL v.2 license
 
@@ -15,7 +17,7 @@ In order to use this class you have to install php5, php5-mod-sockets, php5-mod-
 Usage
 -----
 The usage is the same as bridgeclient.py
-You have just three methods: get, put and getall (see example.php)
+You have methods: get, getall, put, delete, mailbox (see example.php)
 
 */
 
@@ -37,7 +39,7 @@ class bridgeclient {
 		socket_close($this->socket);
 	}
 
-	private function sendcommand($command, $key = "", $value = "") {
+	private function sendcommand($command, $key = "", $value = "", $data = "", $has_response = true) {
 		$jsonreceive = "";
 		$obraces = 0;
 		$cbraces = 0;
@@ -52,9 +54,16 @@ class bridgeclient {
 		if ($value <> "") {
 			$jsonsend->value = $value;
 		}
+		if ($data <> "") {
+			$jsonsend->data = $data;
+		}
 		$jsonsend = json_encode($jsonsend);
 
 		socket_write($this->socket, $jsonsend, strlen($jsonsend));
+
+		if (!$has_response) {
+			return;
+		}
 
 		do {
 			socket_recv($this->socket, $buffer, 1, 0);
@@ -91,6 +100,10 @@ class bridgeclient {
 
 	public function delete($key) {
 		return $this->sendcommand("delete", $key);
+	}
+
+	public function mailbox($message) {
+		return $this->sendcommand("raw", "", "", $message, false);
 	}
 }
 

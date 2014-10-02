@@ -31,4 +31,9 @@ $all = $client->getall();
 print("Listing all stored values\n");
 print_r($all);
 print("Value assigned to D11 is " . $all->{"D11"} . "\n");
+
+print("\n");
+
+print("Sending mailbox message 'Hello world!'\n");
+$client->mailbox("Hello world!");
 ?>

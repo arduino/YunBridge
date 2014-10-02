@@ -36,3 +36,8 @@ all = client.getall()
 print 'Listing all stored values'
 print all
 print 'Value assigned to D11 is ' + all['D11']
+
+print
+
+print 'Sending mailbox message \'Hello world!\''
+client.mailbox('Hello world!')
