@@ -28,9 +28,10 @@
 from tcp import TCPJSONClient
 from time import sleep
 
+
 class BridgeClient:
   def wait_response(self, json, timeout):
-    while timeout>=0:
+    while timeout >= 0:
       r = json.recv()
       if not r is None:
         return r
@@ -51,15 +52,23 @@ class BridgeClient:
 
   def get(self, key):
     json = TCPJSONClient('127.0.0.1', 5700)
-    json.send({'command':'get', 'key':key})
+    json.send({'command': 'get', 'key': key})
     r = self.wait_key(key, json, 10)
+    json.close()
+    return r
+
+  def getall(self):
+    json = TCPJSONClient('127.0.0.1', 5700)
+    json.send({'command': 'get'})
+    r = self.wait_response(json, 10)
+    if not r is None:
+      r = r['value']
     json.close()
     return r
 
   def put(self, key, value):
     json = TCPJSONClient('127.0.0.1', 5700)
-    json.send({'command':'put', 'key':key, 'value':value})
+    json.send({'command': 'put', 'key': key, 'value': value})
     r = self.wait_key(key, json, 10)
     json.close()
     return r
-

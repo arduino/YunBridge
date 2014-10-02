@@ -1,15 +1,21 @@
 <?php
-require ("bridgeclient.class.php");
+require("bridgeclient.class.php");
 
 $client = new bridgeclient();
 
-$client->put("D13","Test");
+print("Assigning value to key D13\n");
+$client->put("D13", "Test D13");
 
 $test = $client->get("D13");
-echo $test;
+print("Value assigned to D13 is " . $test . "\n");
+
+print("\n");
+
+print("Assigning value to key D11\n");
+$client->put("D11", "Test D11");
 
 $all = $client->getall();
-$all = json_decode($all, true);
+print("Listing all stored values\n");
 print_r($all);
+print("Value assigned to D11 is " . $all->{"D11"} . "\n");
 ?>
-
