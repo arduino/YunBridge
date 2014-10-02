@@ -15,7 +15,7 @@ In order to use this class you have to install php5, php5-mod-sockets, php5-mod-
 Usage
 -----
 The usage is the same as bridgeclient.py
-You have just two methods: get and put (see example.php)
+You have just three methods: get, put and getall (see example.php)
 
 */
 
@@ -39,14 +39,15 @@ class bridgeclient {
 		socket_close($this->socket);
 	}
 
-	private function sendcommand($command,$key,$value="") {
+	private function sendcommand($command,$key="",$value="") {
 		$jsonreceive = "";
 		$obraces=0;
 		$cbraces=0;
 
 		$this->connect();
 		
-		$jsonsend = '{"command":"'.$command.'","key":"'.$key.'","value":"'.$value.'"}';
+		if($key<>""){$jsonsend = '{"command":"'.$command.'","key":"'.$key.'","value":"'.$value.'"}';}
+		else{$jsonsend = '{"command":"'.$command.'"}';}
 		socket_write($this->socket, $jsonsend, strlen($jsonsend));
 	
 		do {
@@ -58,10 +59,15 @@ class bridgeclient {
 		
 		$this->disconnect();
 		
-		$jsonarray=json_decode($jsonreceive);
-		if ($jsonarray->{'value'} == NULL) $jsonarray->{'value'}="None";
+		if($key<>""){
+			$jsonarray=json_decode($jsonreceive);
+			if ($jsonarray->{'value'} == NULL) $jsonarray->{'value'}="None";
 		
-		return $jsonarray->{'value'};
+			return $jsonarray->{'value'};
+		}
+		else{
+			return $jsonreceive;
+		}
 	}
 	
 	public function get($key) {
@@ -70,6 +76,10 @@ class bridgeclient {
 	
 	public function put($key,$value) {
 		return $this->sendcommand("put",$key,$value);
+	}
+	
+	public function getall() {
+		return $this->sendcommand("get");
 	}
 
 }
