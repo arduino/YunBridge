@@ -44,11 +44,16 @@ class bridgeclient {
 
 		$this->connect();
 
+		$jsonsend = new stdClass();
+		$jsonsend->command = $command;
 		if ($key <> "") {
-			$jsonsend = "{\"command\":\"" . $command . "\",\"key\":\"" . $key . "\",\"value\":\"" . $value . "\"}";
-		} else {
-			$jsonsend = "{\"command\":\"" . $command . "\"}";
+			$jsonsend->key = $key;
 		}
+		if ($value <> "") {
+			$jsonsend->value = $value;
+		}
+		$jsonsend = json_encode($jsonsend);
+
 		socket_write($this->socket, $jsonsend, strlen($jsonsend));
 
 		do {
@@ -76,12 +81,16 @@ class bridgeclient {
 		return $this->sendcommand("get", $key);
 	}
 
+	public function getall() {
+		return $this->sendcommand("get");
+	}
+
 	public function put($key, $value) {
 		return $this->sendcommand("put", $key, $value);
 	}
 
-	public function getall() {
-		return $this->sendcommand("get");
+	public function delete($key) {
+		return $this->sendcommand("delete", $key);
 	}
 }
 

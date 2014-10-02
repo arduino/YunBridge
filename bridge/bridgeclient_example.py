@@ -16,6 +16,19 @@ print 'Value assigned to D13 is ' + test
 
 print
 
+print 'Assigning value to key D12'
+client.put('D12', 'Test D12')
+
+test = client.get('D12')
+print 'Value assigned to D12 is ' + test
+
+print 'Deleting key D12'
+client.delete('D12')
+test = client.get('D12')
+print 'Value assigned to D12 is ' + str(test)
+
+print
+
 print 'Assigning value to key D11'
 client.put('D11', 'Test D11')
 

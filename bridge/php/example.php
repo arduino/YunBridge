@@ -11,6 +11,19 @@ print("Value assigned to D13 is " . $test . "\n");
 
 print("\n");
 
+print("Assigning value to key D12\n");
+$client->put("D12", "Test D12");
+
+$test = $client->get("D12");
+print("Value assigned to D12 is " . $test . "\n");
+
+print("Deleting key D12\n");
+$client->delete("D12");
+$test = $client->get("D12");
+print("Value assigned to D12 is " . $test . "\n");
+
+print("\n");
+
 print("Assigning value to key D11\n");
 $client->put("D11", "Test D11");
 

@@ -72,3 +72,12 @@ class BridgeClient:
     r = self.wait_key(key, json, 10)
     json.close()
     return r
+
+  def delete(self, key):
+    json = TCPJSONClient('127.0.0.1', 5700)
+    json.send({'command': 'delete', 'key': key})
+    r = self.wait_response(json, 10)
+    if not r is None and not r['value'] is None:
+      r = r['value']
+    json.close()
+    return r
