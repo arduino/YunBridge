@@ -39,5 +39,12 @@ print 'Value assigned to D11 is ' + all['D11']
 
 print
 
-print 'Sending mailbox message \'Hello world!\''
-client.mailbox('Hello world!')
+print 'Using client.begin() and client.close() to speed up consecutive calls to Bridge'
+
+client.begin()
+
+for idx in range(1, 51):
+  print 'Sending mailbox message \'Hello world ' + str(idx) + '!\''
+  client.mailbox('Hello world ' + str(idx) + '!')
+
+client.close()
