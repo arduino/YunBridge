@@ -79,6 +79,9 @@ files.init(cp)
 import sockets
 sockets.init(cp)
 
+import sockets_udp
+sockets_udp.init(cp)
+
 pr = packet.PacketReader(cp)
 start_time = time.time()
 with cbreak():
