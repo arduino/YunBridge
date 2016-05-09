@@ -99,7 +99,7 @@ class RESET_Command:
       call(['/usr/bin/blink-start', '100'])
       return chr(2)
     call(['/usr/bin/blink-stop'])
-    return chr(0) + '160' # send the actual bridge version
+    return chr(0) + '161' # send the actual bridge version
     
 class PacketReader:
   def __init__(self, processor):

@@ -28,7 +28,7 @@
 from socket import AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, SO_ERROR
 from socket import gethostname
 from select import select
-import utils, socket
+import utils, socket, ssl
 
 
 class SocketClient:
@@ -37,14 +37,28 @@ class SocketClient:
     self.rxbuff = ''
     self.connecting = False
     self.connected = False
+    self.isSSL = False
+    self.context = ssl.create_default_context()
+    self.context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    self.context.verify_mode = ssl.CERT_REQUIRED
+    self.context.check_hostname = True
+    self.context.load_verify_locations(None, "/etc/ssl/certs/")
 
   def set_sock(self, sock):
     self.sock = sock
     self.connected = True
 
+  def connectSSL(self, address, port):
+    self.sock = socket.socket(AF_INET, SOCK_STREAM)
+    self.conn = self.context.wrap_socket(self.sock, server_hostname=address)
+    self.conn.connect((address, port))
+    self.isSSL = True
+    self.connecting = True
+
   def connect(self, address, port):
     self.sock = socket.socket(AF_INET, SOCK_STREAM)
     self.sock.setblocking(0)
+    self.isSSL = False
     try:
       self.sock.connect((address, port))
     except socket.error, e:
@@ -77,7 +91,10 @@ class SocketClient:
     if len(rd) > 0:
       if len(self.rxbuff)<1024:
         try:
-          chunk = self.sock.recv(1024)
+          if self.isSSL:
+            chunk = self.conn.recv(1024)
+          else:
+            chunk = self.sock.recv(1024)
         except:
           self.close()
           return
@@ -89,7 +106,10 @@ class SocketClient:
     # send data to socket
     if len(wr) > 0:
       if len(self.txbuff) > 0:
-        sent = self.sock.send(self.txbuff)
+        if self.isSSL:
+          sent = self.conn.sendall(self.txbuff)
+        else:
+          sent = self.sock.send(self.txbuff)
         self.txbuff = self.txbuff[sent:]
 
   def recv(self, maxlen):
@@ -136,6 +156,15 @@ class SocketServer:
     self.clients[self.next_id] = client
     return self.next_id
     
+  def connectSSL(self, address, port):
+    # Determine the next id to assign to socket
+    client = SocketClient()
+    client.connectSSL(address, port)
+    while self.next_id in self.clients:
+      self.next_id = (self.next_id + 1) % 256
+    self.clients[self.next_id] = client
+    return self.next_id
+
   def listen(self, address, port):
     if not self.server is None:
       self.server.close()
@@ -223,6 +252,15 @@ class CONNECT_Command:
     else:
       return chr(c)
 
+class CONNECTSSL_Command:
+  def run(self, data):
+    port = (ord(data[0]) << 8) + ord(data[1])
+    c = server.connectSSL(data[2:], port)
+    if c is None:
+      return ''
+    else:
+      return chr(c)
+
 class ACCEPT_Command:
   def run(self, data):
     c = server.accept()
@@ -283,6 +321,7 @@ def init(command_processor):
   command_processor.register('j', CLOSE_Command())
   command_processor.register('c', CONNECTING_Command())
   command_processor.register('C', CONNECT_Command())
+  command_processor.register('Z', CONNECTSSL_Command())
   command_processor.register('b', WRITE_TO_ALL_Command())
   command_processor.register_runner(server)
   
