@@ -93,12 +93,12 @@ class RESET_Command:
     
   def run(self, data):
     if data[0] != 'X':
-      call(['/usr/bin/blink-start', '100'])
+      call(['/usr/bin/bridge-error'])
       return chr(1)
     if data[1:4] != '100':
-      call(['/usr/bin/blink-start', '100'])
+      call(['/usr/bin/bridge-error'])
       return chr(2)
-    call(['/usr/bin/blink-stop'])
+    call(['/usr/bin/bridge-started'])
     return chr(0) + '161' # send the actual bridge version
     
 class PacketReader:
