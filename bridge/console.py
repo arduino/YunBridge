@@ -25,130 +25,157 @@
 ##
 ##    Copyright 2013 Arduino LLC (http://www.arduino.cc/)
 
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR, gethostname
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from select import select
 import utils
 
 class Console:
-  def __init__(self, port=6571):
-    server = socket(AF_INET, SOCK_STREAM)
-    server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    utils.try_bind(server, '127.0.0.1', port)
-    server.listen(1)  # No connection backlog
-    server.setblocking(0)
-    self.server = server
-    self.clients = [ ]
-    self.clients_sendbuffer = { }
-    self.sockets = [ server ]
-    
-    # Data waiting to be transferred to sockets
-    self.sendbuffer = ''
-    # Data waiting to be transferred to PacketProcessor
-    self.recvbuffer = ''
-    
-  def run(self):
-    sockets_to_read_from, sockets_to_write_to, err = select(self.sockets, [], [], 0)
-    
-    # Accept new connections
-    if self.server in sockets_to_read_from:
-      self.accept()
-      sockets_to_read_from.remove(self.server)
-      
-    # Read from sockets
-    if len(self.sendbuffer) < 1024:
-      for sock in sockets_to_read_from:
-        self.socket_receive(sock)
-    
-    # Write buffers to sockets    
-    sockets_to_read_from, sockets_to_write_to, err = select([], self.clients, [], 0)
-    for client in sockets_to_write_to:
-      try:
-        buff = self.clients_sendbuffer[client]
-        sent = client.send(buff)
-        self.clients_sendbuffer[client] = buff[sent:]
-      except:
-        self.close(client)
-
-    # Drop starving clients
-    for client in self.clients:
-      if len(self.clients_sendbuffer[client]) > 8192:
-        self.close(client)
+    def __init__(self, port=6571):
+        # Create a server socket
+        self.server = socket(AF_INET, SOCK_STREAM)
+        self.server.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        utils.try_bind(self.server, '127.0.0.1', port)
+        self.server.listen(1)  # No connection backlog
+        self.server.setblocking(0)
         
-  def socket_receive(self, client):
-    chunk = client.recv(1024)
-    if chunk == '':
-      self.close(client)
-      return None
-    self.recvbuffer += chunk
+        # Initialize client-related data structures
+        self.clients = []
+        self.clients_sendbuffer = {}
+        self.sockets = [self.server]
         
-    # send chunk as echo to all other clients
-    for current_client in self.clients:
-      if current_client != client:
-        self.clients_sendbuffer[current_client] += chunk
+        # Initialize send and receive buffers
+        self.sendbuffer = ''
+        self.recvbuffer = ''
+        
+    def run(self):
+        # Use select to check for available sockets
+        sockets_to_read_from, _, _ = select(self.sockets, [], [], 0)
+        
+        # Accept new connections
+        if self.server in sockets_to_read_from:
+            self.accept()
+            sockets_to_read_from.remove(self.server)
             
-  def write(self, data):
-    # send chunk to all clients
-    for c in self.clients:
-      self.clients_sendbuffer[c] += data
-     
-  def read(self, maxlen):
-    if maxlen > len(self.recvbuffer):
-      res = self.recvbuffer
-      self.recvbuffer = ''
-    else:
-      res = self.recvbuffer[:maxlen]
-      self.recvbuffer = self.recvbuffer[maxlen:]
-    return res
+        # Read from sockets
+        if len(self.sendbuffer) < 1024:
+            for sock in sockets_to_read_from:
+                self.socket_receive(sock)
+        
+        # Write buffers to sockets
+        _, sockets_to_write_to, _ = select([], self.clients, [], 0)
+        for client in sockets_to_write_to:
+            try:
+                buff = self.clients_sendbuffer[client]
+                sent = client.send(buff)
+                self.clients_sendbuffer[client] = buff[sent:]
+            except:
+                self.close(client)
+        
+        # Drop clients with large send buffers
+        for client in self.clients:
+            if len(self.clients_sendbuffer[client]) > 8192:
+                self.close(client)
+        
+    def socket_receive(self, client):
+        # Receive data from a client socket
+        chunk = client.recv(1024)
+        
+        # Check if client socket closed
+        if chunk == '':
+            self.close(client)
+            return None
+        
+        # Append received data to receive buffer
+        self.recvbuffer += chunk
+        
+        # Send the received chunk as an echo to other clients
+        for current_client in self.clients:
+            if current_client != client:
+                self.clients_sendbuffer[current_client] += chunk
     
-  def available(self):
-    return len(self.recvbuffer)
+    def write(self, data):
+        # Send data to all connected clients
+        for c in self.clients:
+            self.clients_sendbuffer[c] += data
     
-  def is_connected(self):
-    return len(self.clients) > 0
+    def read(self, maxlen):
+        # Read data from the receive buffer
+        if maxlen > len(self.recvbuffer):
+            res = self.recvbuffer
+            self.recvbuffer = ''
+        else:
+            res = self.recvbuffer[:maxlen]
+            self.recvbuffer = self.recvbuffer[maxlen:]
+        return res
     
-  def accept(self):
-    (client, address) = self.server.accept()
+    def available(self):
+        # Get the number of bytes available in the receive buffer
+        return len(self.recvbuffer)
     
-    # IP filtering could be here
+    def is_connected(self):
+        # Check if there are connected clients
+        return len(self.clients) > 0
     
-    self.sockets.append(client)
-    self.clients.append(client)
-    self.clients_sendbuffer[client] = ''
+    def accept(self):
+        # Accept a new client connection
+        client, address = self.server.accept()
+        
+        # Add the client to the list of connected clients
+        self.sockets.append(client)
+        self.clients.append(client)
+        self.clients_sendbuffer[client] = ''
     
-  def close(self, sock):
-    sock.close()
-    self.clients.remove(sock)
-    self.sockets.remove(sock)
-    del self.clients_sendbuffer[sock]
-    
+    def close(self, sock):
+        # Close a client connection
+        sock.close()
+        
+        # Remove the client from the list of connected clients
+        self.clients.remove(sock)
+        self.sockets.remove(sock)
+        del self.clients_sendbuffer[sock]
+
 console = Console()
 
-class WRITE_Command:
-  def run(self, data):
-    console.write(data)
-    return ''
-
-class READ_Command:
-  def run(self, data):
-    len = ord(data[0])
-    return console.read(len)
+class CommandRunner:
+    def __init__(self, console):
+        self.console = console
     
-class CONNECTED_Command:
-  def run(self, data):
-    if console.is_connected():
-      return '\x01'
-    else:
-      return '\x00'
-      
-def init(command_processor):
-  command_processor.register('P', WRITE_Command())
-  command_processor.register('p', READ_Command())
-  command_processor.register('a', CONNECTED_Command())
-  command_processor.register_runner(console)
+    def run(self, command, data):
+        if command == 'P':
+            # Write data to clients
+            self.console.write(data)
+            return ''
+        elif command == 'p':
+            # Read data from the console's receive buffer
+            length = ord(data[0])
+            return self.console.read(length)
+        elif command == 'a':
+            # Check if there are connected clients
+            if self.console.is_connected():
+                return '\x01'
+            else:
+                return '\x00'
+        else:
+            return ''
 
 def test():
-  while True:
-    console.process(1)
+    # Create an instance of the CommandRunner class
+    command_runner = CommandRunner(console)
     
+    while True:
+        # Run the console to process data
+        console.run()
+        
+        # Prompt the user to enter a command
+        command = input("Enter command: ")
+        command = command.strip()
+        
+        # Execute the command using the CommandRunner instance
+        if len(command) > 0:
+            cmd = command[0]
+            data = command[1:]
+            result = command_runner.run(cmd, data)
+            print("Result:", result)
+
 if __name__ == '__main__':
-  test()
+    test()
